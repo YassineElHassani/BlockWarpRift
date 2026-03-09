@@ -18,8 +18,8 @@ COPY . .
 # 6. Build the application
 RUN npm run build
 
-# 7. Expose the port (NestJS runs on 3000 by default inside container)
+# 7. Expose the port (Next.js runs on 3001 by default inside container)
 EXPOSE 3001
 
-# 8. Start NestJS in Production mode
+# 8. Start Next.js in Production mode
 CMD ["npm", "run", "start"]
