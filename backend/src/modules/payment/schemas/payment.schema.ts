@@ -14,28 +14,31 @@ export enum PaymentStatus {
 export class PaymentRequest {
 
     @Prop({ required: true })
-    MerchantId: string;
+    MerchantId!: string;
 
     @Prop({ required: true })
-    Amount: number;
+    Amount!: number;
 
     @Prop({ required: true })
-    Currency: string;
+    Currency!: string;
 
     @Prop({ required: true })
-    WalletAddress: string;
+    WalletAddress!: string;
 
     @Prop()
-    QrCodeUrl: string;
+    QrCodeUrl!: string;
+
+    @Prop()
+    Description?: string;
 
     @Prop({
         enum: PaymentStatus,
         default: PaymentStatus.PENDING,
     })
-    Status: PaymentStatus;
+    Status!: PaymentStatus;
 
     @Prop({ required: true })
-    ExpiresAt: Date;
+    ExpiresAt!: Date;
 
 }
 

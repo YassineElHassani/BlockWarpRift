@@ -13,31 +13,31 @@ export enum TransactionStatus {
 export class Transaction {
 
     @Prop({ required: true })
-    PaymentRequestId: string;
+    PaymentRequestId!: string;
 
     @Prop({ required: true })
-    TxHash: string;
+    TxHash!: string;
 
     @Prop({ required: true })
-    FromAddress: string;
+    FromAddress!: string;
 
     @Prop({ required: true })
-    ToAddress: string;
+    ToAddress!: string;
 
     @Prop({ required: true })
-    Amount: number;
+    Amount!: number;
 
     @Prop({ required: true })
-    Currency: string;
+    Currency!: string;
 
     @Prop({ default: 0 })
-    Confirmations: number;
+    Confirmations!: number;
 
     @Prop({
         enum: TransactionStatus,
         default: TransactionStatus.PENDING,
     })
-    Status: TransactionStatus;
+    Status!: TransactionStatus;
 
 }
 
