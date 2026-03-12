@@ -2,6 +2,7 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ethers } from 'ethers';
 import { BlockchainService } from './blockchain.service';
 import { TransactionService } from '../transaction/transaction.service';
+import { PaymentGateway } from '../websocket/websocket.gateway';
 import { PaymentStatus } from '../payment/schemas/payment.schema';
 import { TransactionStatus } from '../transaction/schemas/transaction.schema';
 import { Currency, ERC20_TOKEN_CONTRACTS } from '../../common/constants';
@@ -17,6 +18,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
   constructor(
     private readonly blockchainService: BlockchainService,
     private readonly transactionService: TransactionService,
+    private readonly paymentGateway: PaymentGateway,
   ) {}
 
   onApplicationBootstrap() {
@@ -155,9 +157,24 @@ export class BlockchainListener implements OnApplicationBootstrap {
       await this.transactionService.updateConfirmations(txHash, confirmations, TransactionStatus.CONFIRMED);
       await this.blockchainService.updatePaymentStatus(paymentId, PaymentStatus.PAID);
       this.logger.log(`Payment ${paymentId} confirmed after ${confirmations} confirmations`);
+      this.paymentGateway.emitPaymentConfirmed(paymentId, {
+        status: PaymentStatus.PAID,
+        txHash,
+        confirmations,
+        amount,
+        currency,
+      });
+      // Also emit generic update so UI state machine has a single event to listen to
+      this.paymentGateway.emitPaymentUpdated(paymentId, { status: PaymentStatus.PAID, txHash, confirmations });
     } else {
       await this.transactionService.updateConfirmations(txHash, confirmations, TransactionStatus.PENDING);
       this.logger.log(`Payment ${paymentId}: ${confirmations}/${REQUIRED_CONFIRMATIONS} confirmations`);
+      this.paymentGateway.emitPaymentUpdated(paymentId, {
+        status: PaymentStatus.PENDING,
+        txHash,
+        confirmations,
+        required: REQUIRED_CONFIRMATIONS,
+      });
     }
   }
 }

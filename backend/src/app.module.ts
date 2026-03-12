@@ -9,6 +9,7 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
 import { BlockchainModule } from './modules/blockchain/blockchain.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { WebSocketModule } from './modules/websocket/websocket.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -24,6 +25,7 @@ import configuration from './config/configuration';
     TransactionModule,
     BlockchainModule,
     AnalyticsModule,
+    WebSocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],
