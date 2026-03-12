@@ -12,11 +12,14 @@ export enum TransactionStatus {
 @Schema({ timestamps: true })
 export class Transaction {
 
-    @Prop({ required: true })
+    @Prop({ required: true, index: true })
     PaymentRequestId!: string;
 
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
     TxHash!: string;
+
+    @Prop({ required: true })
+    MerchantId!: string;
 
     @Prop({ required: true })
     FromAddress!: string;
@@ -32,6 +35,9 @@ export class Transaction {
 
     @Prop({ default: 0 })
     Confirmations!: number;
+
+    @Prop()
+    BlockNumber?: number;
 
     @Prop({
         enum: TransactionStatus,
