@@ -6,10 +6,12 @@ import { Transaction, TransactionDocument, TransactionStatus } from './schemas/t
 export interface CreateTransactionData {
   paymentRequestId: string;
   txHash: string;
+  merchantId: string;
   fromAddress: string;
   toAddress: string;
   amount: number;
   currency: string;
+  blockNumber?: number;
 }
 
 @Injectable()
@@ -23,11 +25,13 @@ export class TransactionService {
     return this.transactionModel.create({
       PaymentRequestId: data.paymentRequestId,
       TxHash: data.txHash,
+      MerchantId: data.merchantId,
       FromAddress: data.fromAddress,
       ToAddress: data.toAddress,
       Amount: data.amount,
       Currency: data.currency,
       Confirmations: 0,
+      BlockNumber: data.blockNumber,
       Status: TransactionStatus.PENDING,
     });
   }
@@ -51,6 +55,24 @@ export class TransactionService {
       .find({ PaymentRequestId: paymentRequestId })
       .sort({ createdAt: -1 })
       .exec();
+  }
+
+  async findAllByMerchant(
+    merchantId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<{ data: TransactionDocument[]; total: number; page: number; limit: number }> {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.transactionModel
+        .find({ MerchantId: merchantId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.transactionModel.countDocuments({ MerchantId: merchantId }).exec(),
+    ]);
+    return { data, total, page, limit };
   }
 }
 

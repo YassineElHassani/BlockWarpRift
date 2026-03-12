@@ -39,11 +39,12 @@ export class BlockchainListener implements OnApplicationBootstrap {
 
       for (const payment of pendingPayments) {
         const paymentId = (payment._id as unknown as string).toString();
+        const merchantId = payment.MerchantId;
 
         if (payment.Currency === Currency.ETH) {
-          await this.checkEthPayment(payment.WalletAddress, payment.Amount, paymentId, currentBlock, provider);
+          await this.checkEthPayment(payment.WalletAddress, payment.Amount, paymentId, merchantId, currentBlock, provider);
         } else {
-          await this.checkErc20Payment(payment.WalletAddress, payment.Amount, payment.Currency, paymentId, currentBlock, provider);
+          await this.checkErc20Payment(payment.WalletAddress, payment.Amount, payment.Currency, paymentId, merchantId, currentBlock, provider);
         }
       }
     } catch (err) {
@@ -55,20 +56,11 @@ export class BlockchainListener implements OnApplicationBootstrap {
     walletAddress: string,
     expectedAmount: number,
     paymentId: string,
+    merchantId: string,
     currentBlock: number,
     provider: ethers.JsonRpcProvider,
   ): Promise<void> {
-    // Scan the last 50 blocks for incoming ETH transfers to this address
-    const fromBlock = Math.max(0, currentBlock - 50);
-    const history = await provider.send('eth_getTransactionCountByAddress', []).catch(() => null);
-
-    // Use getLogs approach — filter by toAddress via tracing is not available on all nodes.
-    // Instead, check balance change heuristic: look at recent blocks.
-    const filter: ethers.Filter = {
-      fromBlock,
-      toBlock: 'latest',
-    };
-
+    // Scan the current block for incoming ETH transfers to this address
     const block = await provider.getBlock(currentBlock, true);
     if (!block || !block.prefetchedTransactions) return;
 
@@ -78,7 +70,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
       const amount = this.blockchainService.parseEthAmount(tx.value);
       if (amount < expectedAmount) continue;
 
-      await this.handleConfirmation(tx.hash, tx.from, walletAddress, amount, Currency.ETH, paymentId, currentBlock, tx.blockNumber ?? currentBlock, provider);
+      await this.handleConfirmation(tx.hash, tx.from, walletAddress, amount, Currency.ETH, paymentId, merchantId, currentBlock, tx.blockNumber ?? currentBlock);
       break;
     }
   }
@@ -88,6 +80,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
     expectedAmount: number,
     currency: string,
     paymentId: string,
+    merchantId: string,
     currentBlock: number,
     provider: ethers.JsonRpcProvider,
   ): Promise<void> {
@@ -122,9 +115,9 @@ export class BlockchainListener implements OnApplicationBootstrap {
         amount,
         currency,
         paymentId,
+        merchantId,
         currentBlock,
         log.blockNumber,
-        provider,
       );
       break;
     }
@@ -137,9 +130,9 @@ export class BlockchainListener implements OnApplicationBootstrap {
     amount: number,
     currency: string,
     paymentId: string,
+    merchantId: string,
     currentBlock: number,
     txBlock: number,
-    provider: ethers.JsonRpcProvider,
   ): Promise<void> {
     const confirmations = currentBlock - txBlock + 1;
 
@@ -148,10 +141,12 @@ export class BlockchainListener implements OnApplicationBootstrap {
       existing = await this.transactionService.create({
         paymentRequestId: paymentId,
         txHash,
+        merchantId,
         fromAddress: from,
         toAddress: to,
         amount,
         currency,
+        blockNumber: txBlock,
       });
       this.logger.log(`New tx detected: ${txHash} (${confirmations} confirmations)`);
     }
