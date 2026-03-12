@@ -12,16 +12,16 @@ export enum UserRole {
 export class User {
 
     @Prop({ required: true, unique: true })
-    Email: string;
+    Email!: string;
 
     @Prop({ required: true })
-    Password: string;
+    Password!: string;
 
     @Prop({
         enum: UserRole,
         default: UserRole.MERCHANT
     })
-    Role: UserRole;
+    Role!: UserRole;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

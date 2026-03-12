@@ -7,13 +7,13 @@ export type WalletDocument = Wallet & Document;
 export class Wallet {
 
     @Prop({ required: true })
-    Address: string;
+    Address!: string;
 
     @Prop({ required: true })
-    PrivateKeyEncrypted: string;
+    PrivateKeyEncrypted!: string;
 
     @Prop({ required: true })
-    PaymentRequestId: string;
+    PaymentRequestId!: string;
 
 }
 

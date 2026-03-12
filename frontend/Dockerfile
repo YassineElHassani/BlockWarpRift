@@ -18,8 +18,8 @@ COPY . .
 # 6. Build the application
 RUN npm run build
 
-# 7. Expose the port (Next.js runs on 3001 by default inside container)
-EXPOSE 3001
+# 7. Expose port (Next.js runs on 3000 inside container; docker-compose maps host 3001 -> container 3000)
+EXPOSE 3000
 
 # 8. Start Next.js in Production mode
 CMD ["npm", "run", "start"]
