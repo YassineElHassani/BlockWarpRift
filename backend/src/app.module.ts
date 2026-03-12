@@ -7,6 +7,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
+import { BlockchainModule } from './modules/blockchain/blockchain.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -20,8 +21,10 @@ import configuration from './config/configuration';
     AuthModule,
     PaymentModule,
     TransactionModule,
+    BlockchainModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
