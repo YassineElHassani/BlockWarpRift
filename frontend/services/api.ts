@@ -29,10 +29,10 @@ api.interceptors.response.use(
 
 // Typed API methods
 export const authApi = {
-  register: (data: { email: string; password: string }) =>
-    api.post("/auth/register", data),
+  register: (data: { email: string; password: string; businessName: string }) =>
+    api.post<{ access_token: string; user: import("@/types").User }>("/auth/register", data),
   login: (data: { email: string; password: string }) =>
-    api.post<{ access_token: string }>("/auth/login", data),
+    api.post<{ access_token: string; user: import("@/types").User }>("/auth/login", data),
 }
 
 export const paymentApi = {

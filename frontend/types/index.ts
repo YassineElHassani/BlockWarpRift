@@ -1,8 +1,8 @@
 // Auth
 export interface User {
-  id: string
+  _id: string
   email: string
-  role: string
+  businessName: string
 }
 
 export interface AuthState {
@@ -11,6 +11,7 @@ export interface AuthState {
   isAuthenticated: boolean
   login: (token: string, user: User) => void
   logout: () => void
+  hydrate: () => void
 }
 
 // Payment
@@ -19,33 +20,32 @@ export type Currency = "ETH" | "USDT" | "USDC"
 
 export interface PaymentRequest {
   _id: string
-  MerchantId: string
-  Amount: number
-  Currency: Currency
-  WalletAddress: string
-  QrCodeUrl: string
-  Description?: string
-  Status: PaymentStatus
-  ExpiresAt: string
+  merchantId: string
+  amount: number
+  currency: Currency
+  walletAddress: string
+  qrCode?: string
+  description?: string
+  status: PaymentStatus
+  expiresAt: string
   createdAt: string
   updatedAt: string
 }
 
 // Transaction
-export type TransactionStatus = "PENDING" | "CONFIRMED"
+export type TransactionStatus = "PENDING" | "CONFIRMED" | "FAILED"
 
 export interface Transaction {
   _id: string
-  PaymentRequestId: string
-  TxHash: string
-  MerchantId: string
-  FromAddress: string
-  ToAddress: string
-  Amount: number
-  Currency: Currency
-  Confirmations: number
-  BlockNumber?: number
-  Status: TransactionStatus
+  paymentId: string
+  txHash: string
+  fromAddress: string
+  toAddress: string
+  amount: number
+  currency: Currency
+  confirmations: number
+  blockNumber?: number
+  status: TransactionStatus
   createdAt: string
 }
 
