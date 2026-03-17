@@ -87,6 +87,7 @@ function CopyButton({ text, children }: { text: string; children: React.ReactNod
 export default function PublicPaymentPage() {
   const { id } = useParams<{ id: string }>()
   const [payment, setPayment] = useState<PaymentRequest | null>(null)
+  const [prevStatus, setPrevStatus] = useState<PaymentStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [timeLeft, setTimeLeft] = useState<string | null>(null)
@@ -95,18 +96,39 @@ export default function PublicPaymentPage() {
   const cardRef = useRef<HTMLDivElement>(null)
   const actionsRef = useRef<HTMLDivElement>(null)
 
-  const fetchPayment = useCallback(async () => {
+  const fetchPayment = useCallback(async (silent = false) => {
     try {
       const res = await paymentApi.findOne(id)
-      setPayment(res.data)
+      setPayment(prev => {
+        setPrevStatus(prev?.status ?? null)
+        return res.data
+      })
     } catch {
-      setNotFound(true)
+      if (!silent) setNotFound(true)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [id])
 
   useEffect(() => { fetchPayment() }, [fetchPayment])
+
+  // Poll every 5s while PENDING — stop when PAID / EXPIRED / FAILED
+  useEffect(() => {
+    if (!payment || payment.status !== "PENDING") return
+    const interval = setInterval(() => fetchPayment(true), 5000)
+    return () => clearInterval(interval)
+  }, [payment, fetchPayment])
+
+  // Animate card on status transition to PAID
+  useEffect(() => {
+    if (payment?.status === "PAID" && prevStatus === "PENDING" && cardRef.current) {
+      gsap.fromTo(
+        cardRef.current,
+        { scale: 0.97 },
+        { scale: 1, duration: 0.5, ease: "back.out(1.6)" }
+      )
+    }
+  }, [payment?.status, prevStatus])
 
   // Countdown timer for PENDING payments
   useEffect(() => {
@@ -202,7 +224,10 @@ export default function PublicPaymentPage() {
             <p className="text-xs opacity-80 mt-0.5">{cfg.description}</p>
           </div>
           {payment.status === "PENDING" && timeLeft && (
-            <span className="ml-auto font-mono text-sm font-bold shrink-0">{timeLeft}</span>
+            <span className="ml-auto font-mono text-sm font-bold shrink-0 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+              {timeLeft}
+            </span>
           )}
         </div>
 
