@@ -58,12 +58,23 @@ export interface PaginatedTransactions {
 
 // Analytics
 export interface RevenueData {
-  total: number
-  byDay: { date: string; total: number }[]
-  perCurrency: { currency: string; total: number }[]
+  totalRevenue: number
+  revenueByDay: { date: string; revenue: number }[]
+  revenuePerCurrency: { currency: string; revenue: number }[]
 }
 
 export interface TransactionStatsData {
-  counts: Record<string, number>
-  recent: Transaction[]
+  total: number
+  confirmed: number
+  pending: number
+  failed: number
+  recentTransactions: Transaction[]
+}
+
+export interface PaymentStatsData {
+  total: number
+  paid: number
+  pending: number
+  expired: number
+  failed: number
 }
