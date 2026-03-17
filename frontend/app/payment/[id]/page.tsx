@@ -1,5 +1,10 @@
 interface Props {
-  params: Promise<{ id: string }>;
+  return (
+    <div>
+      <h1>Payment</h1>
+      <p>This payment page is not implemented yet.</p>
+    </div>
+  );
 }
 
 export default async function PaymentPage({ params }: Props) {
