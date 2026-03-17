@@ -96,10 +96,11 @@ export default function RegisterPage() {
 
           {/* Business name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 mb-1.5">
               Business name
             </label>
             <input
+              id="businessName"
               type="text"
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
