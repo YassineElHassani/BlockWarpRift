@@ -4,42 +4,26 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import gsap from "gsap"
-import { useAuthStore } from "@/store/auth.store"
-
-const links = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/analytics", label: "Analytics" },
-]
 
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const navRef = useRef<HTMLElement>(null)
   const logoRef = useRef<HTMLDivElement>(null)
-  const linksRef = useRef<HTMLDivElement>(null)
-  const { logout } = useAuthStore()
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from(navRef.current, {
         y: -60,
         opacity: 0,
-        duration: 0.6,
+        duration: 0.7,
         ease: "power3.out",
       })
       gsap.from(logoRef.current, {
         x: -20,
         opacity: 0,
-        duration: 0.5,
+        duration: 0.6,
         delay: 0.2,
-        ease: "power2.out",
-      })
-      gsap.from(linksRef.current?.children ?? [], {
-        y: -10,
-        opacity: 0,
-        duration: 0.4,
-        stagger: 0.06,
-        delay: 0.3,
         ease: "power2.out",
       })
     })
@@ -47,52 +31,63 @@ export default function Navbar() {
   }, [])
 
   const handleLogout = () => {
-    logout()
+    localStorage.removeItem("token")
     router.push("/login")
   }
 
   return (
     <nav
       ref={navRef}
-      className="fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-[var(--border)] flex items-center px-6 z-50"
+      className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur-xl border-b border-[var(--border)] flex items-center px-6"
+      style={{ boxShadow: "0 1px 0 0 #e4e4f0" }}
     >
-      <div ref={logoRef} className="flex items-center gap-2.5 mr-10">
-        <div className="w-8 h-8 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-sm">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="white" strokeWidth="1.4" strokeLinejoin="round"/>
-            <circle cx="8" cy="8" r="2" fill="white"/>
-          </svg>
+      <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
+        {/* Logo */}
+        <div ref={logoRef}>
+          <Link href="/dashboard" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-200">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L14 4.5V11.5L8 15L2 11.5V4.5L8 1Z" stroke="white" strokeWidth="1.5" strokeLinejoin="round"/>
+                <path d="M8 6V10M6 8H10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <span className="font-semibold text-gray-900 text-sm tracking-tight">
+              BlockWarpRift
+            </span>
+          </Link>
         </div>
-        <span className="font-bold text-[15px] text-gray-900 tracking-tight">
-          BlockWarpRift
-        </span>
-      </div>
 
-      <div ref={linksRef} className="flex items-center gap-1 flex-1">
-        {links.map(({ href, label }) => {
-          const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href))
-          return (
+        {/* Nav links */}
+        <div className="hidden md:flex items-center gap-1">
+          {[
+            { href: "/dashboard", label: "Dashboard" },
+            { href: "/dashboard/analytics", label: "Analytics" },
+          ].map(({ href, label }) => (
             <Link
               key={href}
               href={href}
-              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                isActive
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                pathname === href
                   ? "bg-[var(--primary-light)] text-[var(--primary)]"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
             >
               {label}
             </Link>
-          )
-        })}
-      </div>
+          ))}
+        </div>
 
-      <button
-        onClick={handleLogout}
-        className="text-sm font-medium text-gray-500 hover:text-red-500 transition-colors duration-200 px-3 py-1.5 rounded-lg hover:bg-red-50 cursor-pointer"
-      >
-        Sign out
-      </button>
+        {/* Right */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-150 cursor-pointer"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3M11 11l3-3-3-3M14 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Logout
+        </button>
+      </div>
     </nav>
   )
 }
