@@ -3,10 +3,11 @@ import { env } from "@/config/env"
 
 export const api = axios.create({
   baseURL: env.API_URL,
-  timeout: 15000,
+  timeout: 15_000,
   headers: { "Content-Type": "application/json" },
 })
 
+// Attach JWT on every request
 api.interceptors.request.use((config) => {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null
@@ -14,36 +15,37 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+// Auto-redirect to /login on 401
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
-    if (err.response?.status === 401 && typeof window !== "undefined") {
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== "undefined") {
       localStorage.removeItem("token")
       window.location.href = "/login"
     }
-    return Promise.reject(err)
-  }
+    return Promise.reject(error)
+  },
 )
 
+// Typed API methods
 export const authApi = {
-  register: (data: { email: string; password: string; businessName: string }) =>
+  register: (data: { email: string; password: string }) =>
     api.post("/auth/register", data),
   login: (data: { email: string; password: string }) =>
-    api.post("/auth/login", data),
+    api.post<{ access_token: string }>("/auth/login", data),
 }
 
 export const paymentApi = {
   create: (data: { amount: number; currency: string; description?: string }) =>
-    api.post("/payments", data),
-  findAll: () => api.get("/payments"),
-  findOne: (id: string) => api.get(`/payments/${id}`),
+    api.post("/payment", data),
+  findAll: () => api.get("/payment"),
+  findOne: (id: string) => api.get(`/payment/${id}`),
 }
 
 export const transactionApi = {
   findAll: (page = 1, limit = 20) =>
-    api.get(`/transactions?page=${page}&limit=${limit}`),
-  findByPayment: (paymentId: string) =>
-    api.get(`/transactions/payment/${paymentId}`),
+    api.get(`/transaction?page=${page}&limit=${limit}`),
+  findByPayment: (paymentId: string) => api.get(`/transaction/${paymentId}`),
 }
 
 export const analyticsApi = {

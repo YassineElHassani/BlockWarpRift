@@ -70,12 +70,14 @@ export default function Sidebar() {
       ref={sidebarRef}
       className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-56 bg-white border-r border-[var(--border)] flex flex-col py-6 z-40"
     >
+      {/* Logo area */}
       <div className="px-4 mb-6">
         <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
           Navigation
         </span>
       </div>
 
+      {/* Nav items */}
       <div ref={itemsRef} className="flex flex-col gap-1 px-3 flex-1">
         {navItems.map(({ href, label, icon }) => {
           const isActive =
@@ -106,6 +108,7 @@ export default function Sidebar() {
         })}
       </div>
 
+      {/* Footer */}
       <div className="px-4 pt-4 border-t border-[var(--border)] mx-3">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-[var(--primary-light)] flex items-center justify-center">

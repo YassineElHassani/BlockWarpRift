@@ -10,43 +10,64 @@
   --border: #e4e4f0;
   --text-secondary: #6b7280;
   --background: #ffffff;
-  --foreground: #111827;
+  --foreground: #0a0a0f;
+  --primary: #6c47ff;
+  --primary-light: #ede9ff;
+  --primary-dark: #4f32cc;
+  --accent: #00d4aa;
+  --muted: #f4f4f8;
+  --border: #e4e4f0;
+  --text-secondary: #6b7280;
+  --radius: 12px;
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow: 0 4px 16px 0 rgb(108 71 255 / 0.10);
+  --shadow-lg: 0 20px 60px 0 rgb(108 71 255 / 0.15);
 }
 
-* {
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--muted);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #c4c4d8;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--muted); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c4c4d8; }
 
-/* Focus ring */
-*:focus-visible {
+/* Focus */
+:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* Keyframe animations */
+/* Animations */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -60,18 +81,19 @@ body {
   to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes pulse-ring {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(108,71,255,0.4); }
-  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(108,71,255,0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(108,71,255,0); }
+  0%   { box-shadow: 0 0 0 0 rgb(108 71 255 / 0.4); }
+  70%  { box-shadow: 0 0 0 10px rgb(108 71 255 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(108 71 255 / 0); }
 }
 
-.animate-fade-up   { animation: fade-up 0.5s ease both; }
-.animate-fade-in   { animation: fade-in 0.4s ease both; }
-.animate-slide-in  { animation: slide-in-left 0.5s ease both; }
+.animate-fade-up   { animation: fade-up 0.5s ease forwards; }
+.animate-fade-in   { animation: fade-in 0.4s ease forwards; }
+.animate-slide-in  { animation: slide-in-left 0.4s ease forwards; }
 .animate-pulse-ring { animation: pulse-ring 2s infinite; }
 
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
+/* Stagger delays */
+.delay-100 { animation-delay: 0.1s; animation-fill-mode: both; }
+.delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
+.delay-300 { animation-delay: 0.3s; animation-fill-mode: both; }
+.delay-400 { animation-delay: 0.4s; animation-fill-mode: both; }
+.delay-500 { animation-delay: 0.5s; animation-fill-mode: both; }

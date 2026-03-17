@@ -1,8 +1,8 @@
+// Auth
 export interface User {
-  _id: string
+  id: string
   email: string
-  businessName: string
-  createdAt: string
+  role: string
 }
 
 export interface AuthState {
@@ -11,38 +11,41 @@ export interface AuthState {
   isAuthenticated: boolean
   login: (token: string, user: User) => void
   logout: () => void
-  hydrate: () => void
 }
 
+// Payment
 export type PaymentStatus = "PENDING" | "PAID" | "EXPIRED" | "FAILED"
 export type Currency = "ETH" | "USDT" | "USDC"
 
 export interface PaymentRequest {
   _id: string
-  merchantId: string
-  amount: number
-  currency: Currency
-  description?: string
-  status: PaymentStatus
-  walletAddress: string
-  qrCode?: string
-  expiresAt: string
+  MerchantId: string
+  Amount: number
+  Currency: Currency
+  WalletAddress: string
+  QrCodeUrl: string
+  Description?: string
+  Status: PaymentStatus
+  ExpiresAt: string
   createdAt: string
   updatedAt: string
 }
 
-export type TransactionStatus = "PENDING" | "CONFIRMED" | "FAILED"
+// Transaction
+export type TransactionStatus = "PENDING" | "CONFIRMED"
 
 export interface Transaction {
   _id: string
-  paymentId: string
-  txHash: string
-  from: string
-  to: string
-  amount: string
-  currency: Currency
-  status: TransactionStatus
-  blockNumber?: number
+  PaymentRequestId: string
+  TxHash: string
+  MerchantId: string
+  FromAddress: string
+  ToAddress: string
+  Amount: number
+  Currency: Currency
+  Confirmations: number
+  BlockNumber?: number
+  Status: TransactionStatus
   createdAt: string
 }
 
@@ -53,15 +56,14 @@ export interface PaginatedTransactions {
   limit: number
 }
 
+// Analytics
 export interface RevenueData {
-  daily: { date: string; amount: number }[]
-  totalRevenue: number
-  currency: string
+  total: number
+  byDay: { date: string; total: number }[]
+  perCurrency: { currency: string; total: number }[]
 }
 
 export interface TransactionStatsData {
-  total: number
-  confirmed: number
-  pending: number
-  failed: number
+  counts: Record<string, number>
+  recent: Transaction[]
 }
