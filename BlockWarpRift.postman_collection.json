@@ -1,0 +1,602 @@
+{
+  "info": {
+    "name": "BlockWarpRift API",
+    "description": "Full API test suite for BlockWarpRift — crypto payment gateway.\n\nHow to use:\n1. Import this collection into Postman.\n2. Import BlockWarpRift.postman_environment.json as well.\n3. Select the \"BlockWarpRift\" environment.\n4. Run **Auth / Login** — the `bearerToken` is automatically saved to the environment.\n5. All protected endpoints will use that token automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "description": "Base URL for the API. Override in the environment for staging/production."
+    },
+    {
+      "key": "bearerToken",
+      "value": "",
+      "description": "JWT access token. Automatically set by the Login request test script."
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Public endpoints — no Bearer token required.",
+      "auth": { "type": "noauth" },
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Register a new merchant account.\n\n**Validation:**\n- `email` — valid email format\n- `password` — 8–64 characters"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Response has user object', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('user');",
+                  "  pm.expect(body.user).to.have.property('id');",
+                  "  pm.expect(body.user).to.have.property('email');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Login and receive a JWT access token.\n\nThe test script automatically saves `access_token` to the `bearerToken` collection variable and the active environment."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response contains access_token', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('access_token');",
+                  "  pm.expect(body.access_token).to.be.a('string').and.not.empty;",
+                  "",
+                  "  // Auto-save token globally so all other requests use it",
+                  "  pm.collectionVariables.set('bearerToken', body.access_token);",
+                  "  pm.environment.set('bearerToken', body.access_token);",
+                  "  console.log('Bearer token saved successfully.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login — Wrong Password (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "description": "Negative test — should return 401 Unauthorized."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "description": "Payment request management. All endpoints require a valid Bearer token.\n\nInherits Bearer auth from collection root.",
+      "item": [
+        {
+          "name": "Create Payment (ETH)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"amount\": 0.01,\n  \"currency\": \"ETH\",\n  \"description\": \"Order #1001 — 1 month subscription\"\n}"
+            },
+            "description": "Create a new ETH payment request.\n\nReturns a unique Sepolia wallet address, QR code (EIP-681 URI), and a 15-minute expiry.\n\n**Currencies:** `ETH` | `USDT` | `USDC`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Response has required payment fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('_id');",
+                  "  pm.expect(body).to.have.property('WalletAddress');",
+                  "  pm.expect(body).to.have.property('QrCodeUrl');",
+                  "  pm.expect(body).to.have.property('ExpiresAt');",
+                  "  pm.expect(body.Status).to.equal('PENDING');",
+                  "  // Save for downstream requests",
+                  "  pm.collectionVariables.set('paymentId', body._id);",
+                  "  pm.environment.set('paymentId', body._id);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Payment (USDT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"amount\": 10,\n  \"currency\": \"USDT\",\n  \"description\": \"Order #1002 — USDT payment\"\n}"
+            },
+            "description": "Create a USDT (ERC-20) payment request on Sepolia."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Currency is USDT', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.Currency).to.equal('USDT');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Payment (USDC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"amount\": 25,\n  \"currency\": \"USDC\",\n  \"description\": \"Order #1003 — USDC payment\"\n}"
+            },
+            "description": "Create a USDC (ERC-20) payment request on Sepolia."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
+                  "pm.test('Currency is USDC', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.Currency).to.equal('USDC');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Payment — Invalid currency (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment"]
+            },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"amount\": 5,\n  \"currency\": \"BTC\"\n}"
+            },
+            "description": "Negative test — `BTC` is not a supported currency, should return 400 Bad Request."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Payments",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment"]
+            },
+            "description": "Retrieve all payment requests belonging to the authenticated merchant."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response is an array', () => {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "{{paymentId}}"]
+            },
+            "description": "Retrieve a single payment by its MongoDB `_id`.\n\nThe `paymentId` variable is automatically set when you run **Create Payment**."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Payment ID matches', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body._id).to.equal(pm.collectionVariables.get('paymentId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Payment by ID — Not Found (expect 404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment/000000000000000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment", "000000000000000000000000"]
+            },
+            "description": "Negative test — a non-existent MongoDB ObjectId should return 404 Not Found."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Transaction",
+      "description": "Transaction history for confirmed on-chain payments.\n\nInherits Bearer auth from collection root.",
+      "item": [
+        {
+          "name": "Get All Transactions (paginated)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/transaction?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction"],
+              "query": [
+                { "key": "page", "value": "1", "description": "Page number (default: 1)" },
+                { "key": "limit", "value": "20", "description": "Items per page (default: 20)" }
+              ]
+            },
+            "description": "Returns a paginated list of all confirmed transactions for the authenticated merchant."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response contains data and total', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('data');",
+                  "  pm.expect(body.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Transactions by Payment ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/transaction/{{paymentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction", "{{paymentId}}"]
+            },
+            "description": "Returns all transactions associated with a specific payment request.\n\nThe `paymentId` variable is set automatically by the **Create Payment** test script."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response is an array', () => {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "description": "Dashboard aggregation endpoints — revenue, transaction stats, and payment stats.\n\nInherits Bearer auth from collection root.",
+      "item": [
+        {
+          "name": "Get Revenue",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/revenue",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "revenue"]
+            },
+            "description": "Returns:\n- `total` — sum of all confirmed payments\n- `byDay` — daily revenue chart data (last 30 days)\n- `perCurrency` — breakdown by ETH / USDT / USDC"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has total, byDay and perCurrency', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('total');",
+                  "  pm.expect(body).to.have.property('byDay');",
+                  "  pm.expect(body).to.have.property('perCurrency');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Transaction Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "transactions"]
+            },
+            "description": "Returns transaction counts by status (PENDING, CONFIRMED) and the 10 most recent transactions."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response has counts and recent', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('counts');",
+                  "  pm.expect(body).to.have.property('recent');",
+                  "  pm.expect(body.recent).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Payment Stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "payments"]
+            },
+            "description": "Returns payment request counts grouped by status: PENDING, PAID, EXPIRED."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response is an array of status counts', () => {",
+                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "description": "Negative/security tests — verify that protected routes reject unauthenticated requests.",
+      "auth": { "type": "noauth" },
+      "item": [
+        {
+          "name": "Access Payment without token (expect 401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment",
+              "host": ["{{baseUrl}}"],
+              "path": ["payment"]
+            },
+            "description": "No Authorization header — should return 401 Unauthorized."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Access Analytics without token (expect 401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/analytics/revenue",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "revenue"]
+            },
+            "description": "No Authorization header — should return 401 Unauthorized."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Access Transaction without token (expect 401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/transaction",
+              "host": ["{{baseUrl}}"],
+              "path": ["transaction"]
+            },
+            "description": "No Authorization header — should return 401 Unauthorized."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
