@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react"
 import { useParams } from "next/navigation"
 import gsap from "gsap"
 import { paymentApi } from "@/services/api"
+import { usePaymentSocket } from "@/hooks/useSocket"
 import type { PaymentRequest, PaymentStatus } from "@/types"
 import Image from "next/image"
 
@@ -118,6 +119,22 @@ export default function PublicPaymentPage() {
     const interval = setInterval(() => fetchPayment(true), 5000)
     return () => clearInterval(interval)
   }, [payment, fetchPayment])
+
+  // Real-time WebSocket — instant status updates without relying solely on polling
+  usePaymentSocket(payment ? id : undefined, {
+    onUpdated: (payload) => {
+      if (payload.status) {
+        setPayment(prev =>
+          prev ? { ...prev, status: payload.status as PaymentStatus } : prev
+        )
+        setPrevStatus(payment?.status ?? null)
+      }
+    },
+    onConfirmed: () => {
+      setPayment(prev => prev ? { ...prev, status: "PAID" } : prev)
+      setPrevStatus("PENDING")
+    },
+  })
 
   // Animate card on status transition to PAID
   useEffect(() => {

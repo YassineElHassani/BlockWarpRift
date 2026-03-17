@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import gsap from "gsap"
 import Link from "next/link"
 import { paymentApi } from "@/services/api"
+import { useMultiPaymentSocket } from "@/hooks/useSocket"
 import type { PaymentRequest, PaymentStatus } from "@/types"
 import CreatePaymentModal from "@/components/payment/CreatePaymentModal"
 
@@ -21,7 +22,7 @@ export default function DashboardPage() {
   const headerRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
 
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     try {
       const res = await paymentApi.findAll()
       setPayments(res.data?.data ?? res.data ?? [])
@@ -30,11 +31,25 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchPayments()
-  }, [])
+  }, [fetchPayments])
+
+  // Real-time payment status updates via WebSocket
+  const paymentIds = payments.map(p => p._id)
+  useMultiPaymentSocket(paymentIds, (payload) => {
+    if (payload.status) {
+      setPayments(prev =>
+        prev.map(p =>
+          p._id === payload.paymentId
+            ? { ...p, status: payload.status as PaymentStatus }
+            : p
+        )
+      )
+    }
+  })
 
   useEffect(() => {
     if (loading) return
