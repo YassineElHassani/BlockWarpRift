@@ -9,8 +9,14 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async create(data: { email: string; password: string }): Promise<UserDocument> {
-    return this.userModel.create({ Email: data.email, Password: data.password });
+  async create(data: {
+    email: string;
+    password: string;
+  }): Promise<UserDocument> {
+    return this.userModel.create({
+      Email: data.email,
+      Password: data.password,
+    });
   }
 
   async findByEmail(email: string): Promise<UserDocument | null> {
@@ -20,5 +26,12 @@ export class UsersService {
   async findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).exec();
   }
-}
 
+  async findAll(): Promise<UserDocument[]> {
+    return this.userModel.find().exec();
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.userModel.findByIdAndDelete(id).exec();
+  }
+}
