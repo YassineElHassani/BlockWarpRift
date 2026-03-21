@@ -1,12 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { PaymentRequest, PaymentRequestDocument, PaymentStatus } from './schemas/payment.schema';
+import { Model } from 'mongoose';
+import {
+  PaymentRequest,
+  PaymentRequestDocument,
+  PaymentStatus,
+} from './schemas/payment.schema';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { WalletService } from '../wallet/wallet.service';
 import { generateWallet } from '../../utils/wallet-generator.util';
 import { generateEIP681QR } from '../../utils/qr-generator.util';
-import { Currency, PAYMENT_EXPIRY_MINUTES } from '../../common/constants';
+import { PAYMENT_EXPIRY_MINUTES } from '../../common/constants';
 
 @Injectable()
 export class PaymentService {
@@ -24,7 +28,7 @@ export class PaymentService {
     const qrCodeUrl = await generateEIP681QR(
       address,
       dto.amount.toString(),
-      dto.currency as Currency,
+      dto.currency,
     );
     const expiresAt = new Date(Date.now() + PAYMENT_EXPIRY_MINUTES * 60 * 1000);
 
@@ -42,7 +46,7 @@ export class PaymentService {
     await this.walletService.saveWallet(
       address,
       privateKey,
-      (payment._id as Types.ObjectId).toString(),
+      payment._id.toString(),
     );
 
     return payment;
@@ -55,7 +59,10 @@ export class PaymentService {
       .exec();
   }
 
-  async findOne(id: string, merchantId: string): Promise<PaymentRequestDocument> {
+  async findOne(
+    id: string,
+    merchantId: string,
+  ): Promise<PaymentRequestDocument> {
     const payment = await this.paymentModel
       .findOne({ _id: id, MerchantId: merchantId })
       .exec();
@@ -73,4 +80,3 @@ export class PaymentService {
     return payment;
   }
 }
-

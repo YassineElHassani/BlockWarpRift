@@ -1,4 +1,11 @@
-import { IsEnum, IsNumber, IsOptional, IsPositive, IsString, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { Currency } from '../../../common/constants';
 
 export { Currency };
@@ -16,4 +23,3 @@ export class CreatePaymentDto {
   @MaxLength(255)
   description?: string;
 }
-
