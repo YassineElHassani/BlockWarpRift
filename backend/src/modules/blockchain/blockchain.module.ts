@@ -5,11 +5,16 @@ import { BlockchainService } from './blockchain.service';
 import { BlockchainListener } from './blockchain.listener';
 import { TransactionModule } from '../transaction/transaction.module';
 import { WebSocketModule } from '../websocket/websocket.module';
-import { PaymentRequest, PaymentRequestSchema } from '../payment/schemas/payment.schema';
+import {
+  PaymentRequest,
+  PaymentRequestSchema,
+} from '../payment/schemas/payment.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: PaymentRequest.name, schema: PaymentRequestSchema }]),
+    MongooseModule.forFeature([
+      { name: PaymentRequest.name, schema: PaymentRequestSchema },
+    ]),
     ConfigModule,
     TransactionModule,
     WebSocketModule,
@@ -18,4 +23,3 @@ import { PaymentRequest, PaymentRequestSchema } from '../payment/schemas/payment
   exports: [BlockchainService],
 })
 export class BlockchainModule {}
-

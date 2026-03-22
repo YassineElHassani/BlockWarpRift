@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { ethers } from 'ethers';
 import { BlockchainListener } from './blockchain.listener';
@@ -102,9 +103,15 @@ describe('BlockchainListener', () => {
       mockBlockchainService.updatePaymentStatus.mockResolvedValue(undefined);
 
       await (listener as any).handleConfirmation(
-        baseArgs.txHash, baseArgs.from, baseArgs.to,
-        baseArgs.amount, baseArgs.currency, baseArgs.paymentId,
-        baseArgs.merchantId, baseArgs.currentBlock, baseArgs.txBlock,
+        baseArgs.txHash,
+        baseArgs.from,
+        baseArgs.to,
+        baseArgs.amount,
+        baseArgs.currency,
+        baseArgs.paymentId,
+        baseArgs.merchantId,
+        baseArgs.currentBlock,
+        baseArgs.txBlock,
       );
 
       expect(mockTransactionService.create).toHaveBeenCalledWith(
@@ -119,14 +126,23 @@ describe('BlockchainListener', () => {
     });
 
     it('should NOT create a duplicate transaction when txHash already exists', async () => {
-      mockTransactionService.findByTxHash.mockResolvedValue({ _id: 'tx1', TxHash: '0xTXHASH' });
+      mockTransactionService.findByTxHash.mockResolvedValue({
+        _id: 'tx1',
+        TxHash: '0xTXHASH',
+      });
       mockTransactionService.updateConfirmations.mockResolvedValue(undefined);
       mockBlockchainService.updatePaymentStatus.mockResolvedValue(undefined);
 
       await (listener as any).handleConfirmation(
-        baseArgs.txHash, baseArgs.from, baseArgs.to,
-        baseArgs.amount, baseArgs.currency, baseArgs.paymentId,
-        baseArgs.merchantId, baseArgs.currentBlock, baseArgs.txBlock,
+        baseArgs.txHash,
+        baseArgs.from,
+        baseArgs.to,
+        baseArgs.amount,
+        baseArgs.currency,
+        baseArgs.paymentId,
+        baseArgs.merchantId,
+        baseArgs.currentBlock,
+        baseArgs.txBlock,
       );
 
       expect(mockTransactionService.create).not.toHaveBeenCalled();
@@ -140,20 +156,32 @@ describe('BlockchainListener', () => {
       mockBlockchainService.updatePaymentStatus.mockResolvedValue(undefined);
 
       await (listener as any).handleConfirmation(
-        baseArgs.txHash, baseArgs.from, baseArgs.to,
-        baseArgs.amount, baseArgs.currency, baseArgs.paymentId,
-        baseArgs.merchantId, 100, 98, // exactly 3 confirmations
+        baseArgs.txHash,
+        baseArgs.from,
+        baseArgs.to,
+        baseArgs.amount,
+        baseArgs.currency,
+        baseArgs.paymentId,
+        baseArgs.merchantId,
+        100,
+        98, // exactly 3 confirmations
       );
 
       expect(mockTransactionService.updateConfirmations).toHaveBeenCalledWith(
-        '0xTXHASH', 3, TransactionStatus.CONFIRMED,
+        '0xTXHASH',
+        3,
+        TransactionStatus.CONFIRMED,
       );
       expect(mockBlockchainService.updatePaymentStatus).toHaveBeenCalledWith(
-        'payment1', PaymentStatus.PAID,
+        'payment1',
+        PaymentStatus.PAID,
       );
       expect(mockPaymentGateway.emitPaymentConfirmed).toHaveBeenCalledWith(
         'payment1',
-        expect.objectContaining({ txHash: '0xTXHASH', status: PaymentStatus.PAID }),
+        expect.objectContaining({
+          txHash: '0xTXHASH',
+          status: PaymentStatus.PAID,
+        }),
       );
     });
 
@@ -164,18 +192,30 @@ describe('BlockchainListener', () => {
       mockTransactionService.updateConfirmations.mockResolvedValue(undefined);
 
       await (listener as any).handleConfirmation(
-        baseArgs.txHash, baseArgs.from, baseArgs.to,
-        baseArgs.amount, baseArgs.currency, baseArgs.paymentId,
-        baseArgs.merchantId, 100, 99, // only 2 confirmations
+        baseArgs.txHash,
+        baseArgs.from,
+        baseArgs.to,
+        baseArgs.amount,
+        baseArgs.currency,
+        baseArgs.paymentId,
+        baseArgs.merchantId,
+        100,
+        99, // only 2 confirmations
       );
 
       expect(mockBlockchainService.updatePaymentStatus).not.toHaveBeenCalled();
       expect(mockTransactionService.updateConfirmations).toHaveBeenCalledWith(
-        '0xTXHASH', 2, TransactionStatus.PENDING,
+        '0xTXHASH',
+        2,
+        TransactionStatus.PENDING,
       );
       expect(mockPaymentGateway.emitPaymentUpdated).toHaveBeenCalledWith(
         'payment1',
-        expect.objectContaining({ status: PaymentStatus.PENDING, txHash: '0xTXHASH', confirmations: 2 }),
+        expect.objectContaining({
+          status: PaymentStatus.PENDING,
+          txHash: '0xTXHASH',
+          confirmations: 2,
+        }),
       );
     });
 
@@ -185,9 +225,15 @@ describe('BlockchainListener', () => {
       mockBlockchainService.updatePaymentStatus.mockResolvedValue(undefined);
 
       await (listener as any).handleConfirmation(
-        '0xTX', '0xFROM', '0xTO',
-        50.0, Currency.USDT, 'payment2',
-        'merchant2', 100, 98,
+        '0xTX',
+        '0xFROM',
+        '0xTO',
+        50.0,
+        Currency.USDT,
+        'payment2',
+        'merchant2',
+        100,
+        98,
       );
 
       expect(mockPaymentGateway.emitPaymentConfirmed).toHaveBeenCalledWith(
@@ -214,7 +260,14 @@ describe('BlockchainListener', () => {
       };
       mockBlockchainService.parseEthAmount.mockReturnValue(0.05);
 
-      await (listener as any).checkEthPayment('0xWALLET', 0.1, 'p1', 'm1', 100, mockProvider);
+      await (listener as any).checkEthPayment(
+        '0xWALLET',
+        0.1,
+        'p1',
+        'm1',
+        100,
+        mockProvider,
+      );
 
       expect(mockTransactionService.findByTxHash).not.toHaveBeenCalled();
     });
@@ -235,7 +288,14 @@ describe('BlockchainListener', () => {
       };
       mockBlockchainService.parseEthAmount.mockReturnValue(1.0);
 
-      await (listener as any).checkEthPayment('0xWALLET', 0.1, 'p1', 'm1', 100, mockProvider);
+      await (listener as any).checkEthPayment(
+        '0xWALLET',
+        0.1,
+        'p1',
+        'm1',
+        100,
+        mockProvider,
+      );
 
       expect(mockTransactionService.findByTxHash).not.toHaveBeenCalled();
     });
