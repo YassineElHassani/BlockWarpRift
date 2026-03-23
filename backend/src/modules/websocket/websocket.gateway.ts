@@ -14,7 +14,9 @@ import { Server, Socket } from 'socket.io';
   cors: { origin: '*' },
   namespace: '/',
 })
-export class PaymentGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class PaymentGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -33,7 +35,7 @@ export class PaymentGateway implements OnGatewayConnection, OnGatewayDisconnect 
     @MessageBody() paymentId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    client.join(`payment:${paymentId}`);
+    void client.join(`payment:${paymentId}`);
     this.logger.log(`Client ${client.id} subscribed to payment:${paymentId}`);
   }
 
@@ -42,7 +44,7 @@ export class PaymentGateway implements OnGatewayConnection, OnGatewayDisconnect 
     @MessageBody() paymentId: string,
     @ConnectedSocket() client: Socket,
   ) {
-    client.leave(`payment:${paymentId}`);
+    void client.leave(`payment:${paymentId}`);
   }
 
   emitPaymentUpdated(paymentId: string, data: Record<string, unknown>): void {

@@ -30,23 +30,37 @@
     {
       "name": "Auth",
       "description": "Public endpoints — no Bearer token required.",
-      "auth": { "type": "noauth" },
+      "auth": {
+        "type": "noauth"
+      },
       "item": [
         {
           "name": "Register",
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             },
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "description": "Register a new merchant account.\n\n**Validation:**\n- `email` — valid email format\n- `password` — 8–64 characters"
@@ -63,6 +77,9 @@
                   "  pm.expect(body).to.have.property('user');",
                   "  pm.expect(body.user).to.have.property('id');",
                   "  pm.expect(body.user).to.have.property('email');",
+                  "  // Auto-save userId",
+                  "  pm.collectionVariables.set('userId', body.user.id);",
+                  "  pm.environment.set('userId', body.user.id);",
                   "});"
                 ]
               }
@@ -74,16 +91,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "description": "Login and receive a JWT access token.\n\nThe test script automatically saves `access_token` to the `bearerToken` collection variable and the active environment."
@@ -115,16 +144,28 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"wrongpassword\"\n}"
             },
             "description": "Negative test — should return 401 Unauthorized."
@@ -152,16 +193,27 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/payment",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment"
+              ]
             },
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"amount\": 0.01,\n  \"currency\": \"ETH\",\n  \"description\": \"Order #1001 — 1 month subscription\"\n}"
             },
             "description": "Create a new ETH payment request.\n\nReturns a unique Sepolia wallet address, QR code (EIP-681 URI), and a 15-minute expiry.\n\n**Currencies:** `ETH` | `USDT` | `USDC`"
@@ -194,16 +246,27 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/payment",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment"
+              ]
             },
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"amount\": 10,\n  \"currency\": \"USDT\",\n  \"description\": \"Order #1002 — USDT payment\"\n}"
             },
             "description": "Create a USDT (ERC-20) payment request on Sepolia."
@@ -229,16 +292,27 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/payment",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment"
+              ]
             },
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"amount\": 25,\n  \"currency\": \"USDC\",\n  \"description\": \"Order #1003 — USDC payment\"\n}"
             },
             "description": "Create a USDC (ERC-20) payment request on Sepolia."
@@ -264,16 +338,27 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{baseUrl}}/payment",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment"
+              ]
             },
             "body": {
               "mode": "raw",
-              "options": { "raw": { "language": "json" } },
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
               "raw": "{\n  \"amount\": 5,\n  \"currency\": \"BTC\"\n}"
             },
             "description": "Negative test — `BTC` is not a supported currency, should return 400 Bad Request."
@@ -296,8 +381,12 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/payment",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment"
+              ]
             },
             "description": "Retrieve all payment requests belonging to the authenticated merchant."
           },
@@ -322,8 +411,13 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/payment/{{paymentId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment", "{{paymentId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "{{paymentId}}"
+              ]
             },
             "description": "Retrieve a single payment by its MongoDB `_id`.\n\nThe `paymentId` variable is automatically set when you run **Create Payment**."
           },
@@ -349,8 +443,13 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/payment/000000000000000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment", "000000000000000000000000"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "000000000000000000000000"
+              ]
             },
             "description": "Negative test — a non-existent MongoDB ObjectId should return 404 Not Found."
           },
@@ -361,6 +460,42 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 404 Not Found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Payment Public Endpoint",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/payment/public/{{paymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "public",
+                "{{paymentId}}"
+              ]
+            },
+            "description": "Retrieve a single payment by its ID without authentication."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Payment ID matches', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body._id).to.equal(pm.collectionVariables.get('paymentId'));",
+                  "});"
                 ]
               }
             }
@@ -378,11 +513,23 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/transaction?page=1&limit=20",
-              "host": ["{{baseUrl}}"],
-              "path": ["transaction"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transaction"
+              ],
               "query": [
-                { "key": "page", "value": "1", "description": "Page number (default: 1)" },
-                { "key": "limit", "value": "20", "description": "Items per page (default: 20)" }
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "description": "Items per page (default: 20)"
+                }
               ]
             },
             "description": "Returns a paginated list of all confirmed transactions for the authenticated merchant."
@@ -410,8 +557,13 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/transaction/{{paymentId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["transaction", "{{paymentId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transaction",
+                "{{paymentId}}"
+              ]
             },
             "description": "Returns all transactions associated with a specific payment request.\n\nThe `paymentId` variable is set automatically by the **Create Payment** test script."
           },
@@ -442,10 +594,15 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/analytics/revenue",
-              "host": ["{{baseUrl}}"],
-              "path": ["analytics", "revenue"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "revenue"
+              ]
             },
-            "description": "Returns:\n- `total` — sum of all confirmed payments\n- `byDay` — daily revenue chart data (last 30 days)\n- `perCurrency` — breakdown by ETH / USDT / USDC"
+            "description": "Returns:\n- `totalRevenue` — sum of all confirmed payments\n- `revenueByDay` — daily revenue chart data\n- `revenuePerCurrency` — breakdown by currency"
           },
           "event": [
             {
@@ -454,11 +611,11 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response has total, byDay and perCurrency', () => {",
+                  "pm.test('Response has totalRevenue, revenueByDay and revenuePerCurrency', () => {",
                   "  const body = pm.response.json();",
-                  "  pm.expect(body).to.have.property('total');",
-                  "  pm.expect(body).to.have.property('byDay');",
-                  "  pm.expect(body).to.have.property('perCurrency');",
+                  "  pm.expect(body).to.have.property('totalRevenue');",
+                  "  pm.expect(body).to.have.property('revenueByDay');",
+                  "  pm.expect(body).to.have.property('revenuePerCurrency');",
                   "});"
                 ]
               }
@@ -471,10 +628,15 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/analytics/transactions",
-              "host": ["{{baseUrl}}"],
-              "path": ["analytics", "transactions"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "transactions"
+              ]
             },
-            "description": "Returns transaction counts by status (PENDING, CONFIRMED) and the 10 most recent transactions."
+            "description": "Returns transaction counts by exact status and the 10 most recent transactions."
           },
           "event": [
             {
@@ -483,11 +645,14 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response has counts and recent', () => {",
+                  "pm.test('Response has correct fields', () => {",
                   "  const body = pm.response.json();",
-                  "  pm.expect(body).to.have.property('counts');",
-                  "  pm.expect(body).to.have.property('recent');",
-                  "  pm.expect(body.recent).to.be.an('array');",
+                  "  pm.expect(body).to.have.property('total');",
+                  "  pm.expect(body).to.have.property('confirmed');",
+                  "  pm.expect(body).to.have.property('pending');",
+                  "  pm.expect(body).to.have.property('failed');",
+                  "  pm.expect(body).to.have.property('recentTransactions');",
+                  "  pm.expect(body.recentTransactions).to.be.an('array');",
                   "});"
                 ]
               }
@@ -500,10 +665,15 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/analytics/payments",
-              "host": ["{{baseUrl}}"],
-              "path": ["analytics", "payments"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "payments"
+              ]
             },
-            "description": "Returns payment request counts grouped by status: PENDING, PAID, EXPIRED."
+            "description": "Returns payment request counts object with statuses: PAID, PENDING, EXPIRED, FAILED."
           },
           "event": [
             {
@@ -512,8 +682,51 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response is an array of status counts', () => {",
-                  "  pm.expect(pm.response.json()).to.be.an('array');",
+                  "pm.test('Response has count object', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('total');",
+                  "  pm.expect(body).to.have.property('paid');",
+                  "  pm.expect(body).to.have.property('pending');",
+                  "  pm.expect(body).to.have.property('expired');",
+                  "  pm.expect(body).to.have.property('failed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User management endpoints.\n\nInherits Bearer auth from collection root.",
+      "item": [
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Retrieve a single user by their ID."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('ID matches', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body._id || body.id).to.exist;",
                   "});"
                 ]
               }
@@ -525,7 +738,9 @@
     {
       "name": "Security",
       "description": "Negative/security tests — verify that protected routes reject unauthenticated requests.",
-      "auth": { "type": "noauth" },
+      "auth": {
+        "type": "noauth"
+      },
       "item": [
         {
           "name": "Access Payment without token (expect 401)",
@@ -533,8 +748,12 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/payment",
-              "host": ["{{baseUrl}}"],
-              "path": ["payment"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment"
+              ]
             },
             "description": "No Authorization header — should return 401 Unauthorized."
           },
@@ -556,8 +775,13 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/analytics/revenue",
-              "host": ["{{baseUrl}}"],
-              "path": ["analytics", "revenue"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "analytics",
+                "revenue"
+              ]
             },
             "description": "No Authorization header — should return 401 Unauthorized."
           },
@@ -579,8 +803,12 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/transaction",
-              "host": ["{{baseUrl}}"],
-              "path": ["transaction"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transaction"
+              ]
             },
             "description": "No Authorization header — should return 401 Unauthorized."
           },
