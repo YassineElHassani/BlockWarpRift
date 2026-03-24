@@ -99,7 +99,7 @@ export default function PublicPaymentPage() {
 
   const fetchPayment = useCallback(async (silent = false) => {
     try {
-      const res = await paymentApi.findOne(id)
+      const res = await paymentApi.findPublic(id)
       setPayment(prev => {
         setPrevStatus(prev?.status ?? null)
         return res.data

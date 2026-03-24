@@ -40,6 +40,7 @@ export const paymentApi = {
     api.post("/payment", data),
   findAll: () => api.get("/payment"),
   findOne: (id: string) => api.get(`/payment/${id}`),
+  findPublic: (id: string) => api.get(`/payment/public/${id}`),
 }
 
 export const transactionApi = {

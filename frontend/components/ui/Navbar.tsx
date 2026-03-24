@@ -4,10 +4,12 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import gsap from "gsap"
+import { useAuthStore } from "@/store/auth.store"
 
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { logout } = useAuthStore()
   const navRef = useRef<HTMLElement>(null)
   const logoRef = useRef<HTMLDivElement>(null)
 
@@ -31,7 +33,7 @@ export default function Navbar() {
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("token")
+    logout()
     router.push("/login")
   }
 
