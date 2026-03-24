@@ -1,8 +1,8 @@
 // Auth
 export interface User {
-  _id: string
+  id: string
   email: string
-  businessName: string
+  role: string
 }
 
 export interface AuthState {
@@ -16,7 +16,7 @@ export interface AuthState {
 
 // Payment
 export type PaymentStatus = "PENDING" | "PAID" | "EXPIRED" | "FAILED"
-export type Currency = "ETH" | "USDT" | "USDC"
+export type Currency = "ETH"
 
 export interface PaymentRequest {
   _id: string

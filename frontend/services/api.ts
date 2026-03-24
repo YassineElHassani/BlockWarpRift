@@ -29,8 +29,8 @@ api.interceptors.response.use(
 
 // Typed API methods
 export const authApi = {
-  register: (data: { email: string; password: string; businessName: string }) =>
-    api.post<{ access_token: string; user: import("@/types").User }>("/auth/register", data),
+  register: (data: { email: string; password: string }) =>
+    api.post<{ message: string; user: import("@/types").User }>("/auth/register", data),
   login: (data: { email: string; password: string }) =>
     api.post<{ access_token: string; user: import("@/types").User }>("/auth/login", data),
 }
@@ -46,6 +46,8 @@ export const paymentApi = {
 export const transactionApi = {
   findAll: (page = 1, limit = 20) =>
     api.get(`/transaction?page=${page}&limit=${limit}`),
+  findAll_admin: (page = 1, limit = 10) =>
+    api.get(`/transaction/all?page=${page}&limit=${limit}`),
   findByPayment: (paymentId: string) => api.get(`/transaction/${paymentId}`),
 }
 
@@ -53,4 +55,9 @@ export const analyticsApi = {
   revenue: () => api.get("/analytics/revenue"),
   transactions: () => api.get("/analytics/transactions"),
   payments: () => api.get("/analytics/payments"),
+}
+
+export const usersApi = {
+  findAll: () => api.get("/users"),
+  remove: (id: string) => api.delete(`/users/${id}`),
 }
