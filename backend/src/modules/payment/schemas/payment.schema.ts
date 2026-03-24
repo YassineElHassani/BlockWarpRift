@@ -10,7 +10,24 @@ export enum PaymentStatus {
     EXPIRED = 'EXPIRED',
 }
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    transform(_doc: unknown, ret: Record<string, unknown>) {
+      ret._id = ret._id?.toString()
+      ret.merchantId = ret.MerchantId; delete ret.MerchantId
+      ret.amount = ret.Amount; delete ret.Amount
+      ret.currency = ret.Currency; delete ret.Currency
+      ret.walletAddress = ret.WalletAddress; delete ret.WalletAddress
+      ret.qrCode = ret.QrCodeUrl; delete ret.QrCodeUrl
+      ret.description = ret.Description; delete ret.Description
+      ret.status = ret.Status; delete ret.Status
+      ret.expiresAt = ret.ExpiresAt; delete ret.ExpiresAt
+      delete ret.__v
+      return ret
+    },
+  },
+})
 export class PaymentRequest {
 
     @Prop({ required: true })

@@ -64,5 +64,13 @@ export class PaymentService {
     }
     return payment;
   }
+
+  async findPublic(id: string): Promise<PaymentRequestDocument> {
+    const payment = await this.paymentModel.findById(id).exec();
+    if (!payment) {
+      throw new NotFoundException(`Payment ${id} not found`);
+    }
+    return payment;
+  }
 }
 
