@@ -7,18 +7,19 @@ import gsap from "gsap"
 import { paymentApi, transactionApi } from "@/services/api"
 import type { PaymentRequest, PaymentStatus, Transaction, TransactionStatus } from "@/types"
 import Image from "next/image"
+import { usePaymentSocket } from "@/hooks/useSocket"
 
 const statusColors: Record<PaymentStatus, { bg: string; text: string; dot: string }> = {
   PENDING: { bg: "bg-yellow-50", text: "text-yellow-700", dot: "bg-yellow-400" },
-  PAID:    { bg: "bg-green-50",  text: "text-green-700",  dot: "bg-green-400" },
-  EXPIRED: { bg: "bg-gray-100",  text: "text-gray-500",   dot: "bg-gray-400" },
-  FAILED:  { bg: "bg-red-50",    text: "text-red-600",    dot: "bg-red-400" },
+  PAID: { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-400" },
+  EXPIRED: { bg: "bg-gray-100", text: "text-gray-500", dot: "bg-gray-400" },
+  FAILED: { bg: "bg-red-50", text: "text-red-600", dot: "bg-red-400" },
 }
 
 const txStatusColors: Record<TransactionStatus, { bg: string; text: string; dot: string }> = {
-  PENDING:   { bg: "bg-yellow-50", text: "text-yellow-700", dot: "bg-yellow-400" },
-  CONFIRMED: { bg: "bg-green-50",  text: "text-green-700",  dot: "bg-green-400" },
-  FAILED:    { bg: "bg-red-50",    text: "text-red-600",    dot: "bg-red-400" },
+  PENDING: { bg: "bg-yellow-50", text: "text-yellow-700", dot: "bg-yellow-400" },
+  CONFIRMED: { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-400" },
+  FAILED: { bg: "bg-red-50", text: "text-red-600", dot: "bg-red-400" },
 }
 
 function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
@@ -47,7 +48,7 @@ export default function PaymentDetailPage() {
   const headerRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (silent = false) => {
     try {
       const [pmtRes, txRes] = await Promise.allSettled([
         paymentApi.findOne(id),
@@ -59,11 +60,17 @@ export default function PaymentDetailPage() {
         setTransactions(Array.isArray(d) ? d : d?.data ?? [])
       }
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [id])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  // Real-time updates via WebSocket
+  usePaymentSocket(id, {
+    onUpdated: () => { fetchData(true) },
+    onConfirmed: () => { fetchData(true) },
+  })
 
   useEffect(() => {
     if (loading || !payment) return
@@ -93,8 +100,8 @@ export default function PaymentDetailPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <svg className="animate-spin h-6 w-6 text-[var(--primary)]" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
         </svg>
       </div>
     )
@@ -123,7 +130,7 @@ export default function PaymentDetailPage() {
           className="w-9 h-9 flex items-center justify-center rounded-xl border border-[var(--border)] hover:bg-gray-50 transition-colors text-gray-500 hover:text-gray-700"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </Link>
         <div>
@@ -198,7 +205,7 @@ export default function PaymentDetailPage() {
               >
                 Open page
                 <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                  <path d="M2 9L9 2M9 2H4M9 2v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 9L9 2M9 2H4M9 2v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </a>
             </div>
@@ -278,8 +285,8 @@ export default function PaymentDetailPage() {
                   className="w-full py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 2v8M4 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M7 2v8M4 7l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M2 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   </svg>
                   Download QR
                 </button>
@@ -290,7 +297,7 @@ export default function PaymentDetailPage() {
               </div>
             )}
             <p className="text-xs text-center text-[var(--text-secondary)] leading-relaxed">
-              Share this QR with your customer.<br/>They can scan it to pay directly.
+              Share this QR with your customer.<br />They can scan it to pay directly.
             </p>
           </div>
         </div>
