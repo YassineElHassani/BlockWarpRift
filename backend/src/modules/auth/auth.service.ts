@@ -32,7 +32,7 @@ export class AuthService {
     return {
       message: 'Registration successful',
       user: {
-        id: (user._id as object).toString(),
+        id: String(user._id),
         email: user.Email,
         role: user.Role,
       },
@@ -51,13 +51,18 @@ export class AuthService {
     }
 
     const payload: JwtPayload = {
-      sub: (user._id as object).toString(),
+      sub: String(user._id),
       email: user.Email,
       role: user.Role,
     };
 
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        id: String(user._id),
+        email: user.Email,
+        role: user.Role,
+      }
     };
   }
 }

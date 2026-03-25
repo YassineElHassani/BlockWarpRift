@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Transaction, TransactionDocument, TransactionStatus } from './schemas/transaction.schema';
+import {
+  Transaction,
+  TransactionDocument,
+  TransactionStatus,
+} from './schemas/transaction.schema';
 
 export interface CreateTransactionData {
   paymentRequestId: string;
@@ -40,17 +44,28 @@ export class TransactionService {
     return this.transactionModel.findOne({ TxHash: txHash }).exec();
   }
 
+  async findPendingTransactions(): Promise<TransactionDocument[]> {
+    return this.transactionModel
+      .find({ Status: TransactionStatus.PENDING })
+      .exec();
+  }
+
   async updateConfirmations(
     txHash: string,
     confirmations: number,
     status: TransactionStatus,
   ): Promise<void> {
     await this.transactionModel
-      .updateOne({ TxHash: txHash }, { $set: { Confirmations: confirmations, Status: status } })
+      .updateOne(
+        { TxHash: txHash },
+        { $set: { Confirmations: confirmations, Status: status } },
+      )
       .exec();
   }
 
-  async findByPaymentRequest(paymentRequestId: string): Promise<TransactionDocument[]> {
+  async findByPaymentRequest(
+    paymentRequestId: string,
+  ): Promise<TransactionDocument[]> {
     return this.transactionModel
       .find({ PaymentRequestId: paymentRequestId })
       .sort({ createdAt: -1 })
@@ -61,7 +76,12 @@ export class TransactionService {
     merchantId: string,
     page = 1,
     limit = 20,
-  ): Promise<{ data: TransactionDocument[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: TransactionDocument[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
       this.transactionModel
@@ -74,5 +94,26 @@ export class TransactionService {
     ]);
     return { data, total, page, limit };
   }
-}
 
+  async findAllGlobal(
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    data: TransactionDocument[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.transactionModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.transactionModel.countDocuments().exec(),
+    ]);
+    return { data, total, page, limit };
+  }
+}

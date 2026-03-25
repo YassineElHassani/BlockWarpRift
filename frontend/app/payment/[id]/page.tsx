@@ -22,8 +22,8 @@ const statusConfig: Record<PaymentStatus, {
     text: "text-yellow-700",
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M10 6v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M10 6v4l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -34,8 +34,8 @@ const statusConfig: Record<PaymentStatus, {
     text: "text-green-700",
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M6.5 10l2.5 2.5 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -46,8 +46,8 @@ const statusConfig: Record<PaymentStatus, {
     text: "text-gray-600",
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M7 7l6 6M13 7l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M7 7l6 6M13 7l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -58,8 +58,8 @@ const statusConfig: Record<PaymentStatus, {
     text: "text-red-600",
     icon: (
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M7 7l6 6M13 7l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.5" />
+        <path d="M7 7l6 6M13 7l-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -191,8 +191,8 @@ export default function PublicPaymentPage() {
     return (
       <div className="min-h-screen bg-[var(--muted)] flex items-center justify-center">
         <svg className="animate-spin h-7 w-7 text-[var(--primary)]" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
         </svg>
       </div>
     )
@@ -204,8 +204,8 @@ export default function PublicPaymentPage() {
         <div className="bg-white rounded-2xl border border-[var(--border)] shadow-sm p-10 text-center max-w-sm w-full">
           <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
             <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-              <circle cx="11" cy="11" r="9" stroke="#ef4444" strokeWidth="1.5"/>
-              <path d="M8 8l6 6M14 8l-6 6" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="11" cy="11" r="9" stroke="#ef4444" strokeWidth="1.5" />
+              <path d="M8 8l6 6M14 8l-6 6" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </div>
           <h1 className="text-lg font-bold text-gray-900">Payment not found</h1>
@@ -225,8 +225,8 @@ export default function PublicPaymentPage() {
       <div className="flex items-center gap-2.5 mb-8">
         <div className="w-9 h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-sm shadow-purple-200">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="white" strokeWidth="1.4" strokeLinejoin="round"/>
-            <circle cx="8" cy="8" r="2" fill="white"/>
+            <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="white" strokeWidth="1.4" strokeLinejoin="round" />
+            <circle cx="8" cy="8" r="2" fill="white" />
           </svg>
         </div>
         <span className="font-bold text-gray-800 tracking-tight">BlockWarpRift</span>
@@ -307,9 +307,9 @@ export default function PublicPaymentPage() {
           {payment.status === "PENDING" && (
             <div className="flex gap-2.5 bg-amber-50 border border-amber-100 rounded-xl p-3.5 text-xs text-amber-700 mt-1">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="shrink-0 mt-0.5">
-                <path d="M7 2L13 12H1L7 2Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
-                <path d="M7 6v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-                <circle cx="7" cy="10.5" r="0.5" fill="currentColor"/>
+                <path d="M7 2L13 12H1L7 2Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                <path d="M7 6v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                <circle cx="7" cy="10.5" r="0.5" fill="currentColor" />
               </svg>
               <span>Send exactly <strong>{payment.amount} {payment.currency}</strong>. Sending a different amount may cause the payment to fail.</span>
             </div>

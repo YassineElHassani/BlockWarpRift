@@ -35,4 +35,3 @@ export class PaymentController {
     return this.paymentService.findOne(id, user.userId);
   }
 }
-

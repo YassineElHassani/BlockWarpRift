@@ -39,7 +39,9 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should throw ConflictException when email is already in use', async () => {
-      mockUsersService.findByEmail.mockResolvedValue({ Email: 'taken@test.com' });
+      mockUsersService.findByEmail.mockResolvedValue({
+        Email: 'taken@test.com',
+      });
 
       await expect(
         service.register({ email: 'taken@test.com', password: 'pass123' }),
@@ -55,7 +57,10 @@ describe('AuthService', () => {
       });
       bcrypt.hash.mockResolvedValue('hashed_password');
 
-      const result = await service.register({ email: 'new@test.com', password: 'pass123' });
+      const result = await service.register({
+        email: 'new@test.com',
+        password: 'pass123',
+      });
 
       expect(mockUsersService.create).toHaveBeenCalledWith({
         email: 'new@test.com',
@@ -98,7 +103,10 @@ describe('AuthService', () => {
       });
       bcrypt.compare.mockResolvedValue(true);
 
-      const result = await service.login({ email: 'user@test.com', password: 'pass123' });
+      const result = await service.login({
+        email: 'user@test.com',
+        password: 'pass123',
+      });
 
       expect(mockJwtService.sign).toHaveBeenCalled();
       expect(result.access_token).toBe('mock.jwt.token');

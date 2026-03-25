@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { ethers } from 'ethers';
 import { BlockchainService } from './blockchain.service';
-import { PaymentRequest, PaymentStatus } from '../payment/schemas/payment.schema';
+import {
+  PaymentRequest,
+  PaymentStatus,
+} from '../payment/schemas/payment.schema';
 
 jest.mock('../../config/blockchain.config', () => ({
   createProvider: jest.fn(() => ({ destroy: jest.fn() })),
@@ -24,9 +28,14 @@ describe('BlockchainService', () => {
         BlockchainService,
         {
           provide: ConfigService,
-          useValue: { get: jest.fn().mockReturnValue('https://mock-rpc.example.com') },
+          useValue: {
+            get: jest.fn().mockReturnValue('https://mock-rpc.example.com'),
+          },
         },
-        { provide: getModelToken(PaymentRequest.name), useValue: mockPaymentModel },
+        {
+          provide: getModelToken(PaymentRequest.name),
+          useValue: mockPaymentModel,
+        },
       ],
     }).compile();
 
@@ -37,7 +46,10 @@ describe('BlockchainService', () => {
 
   describe('parseEthAmount', () => {
     it('should convert wei to ETH correctly', () => {
-      expect(service.parseEthAmount(ethers.parseEther('1.5'))).toBeCloseTo(1.5, 8);
+      expect(service.parseEthAmount(ethers.parseEther('1.5'))).toBeCloseTo(
+        1.5,
+        8,
+      );
     });
 
     it('should return 0 for zero wei', () => {
@@ -58,7 +70,9 @@ describe('BlockchainService', () => {
   describe('getPendingPayments', () => {
     it('should query for PENDING payments that have not yet expired', async () => {
       const mockPayments = [{ _id: 'p1', Status: 'PENDING' }];
-      mockPaymentModel.find.mockReturnValue({ exec: jest.fn().mockResolvedValue(mockPayments) });
+      mockPaymentModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockPayments),
+      });
 
       const result = await service.getPendingPayments();
 
@@ -71,7 +85,9 @@ describe('BlockchainService', () => {
 
   describe('markExpired', () => {
     it('should update PENDING payments past their ExpiresAt to EXPIRED', async () => {
-      mockPaymentModel.updateMany.mockReturnValue({ exec: jest.fn().mockResolvedValue({ modifiedCount: 2 }) });
+      mockPaymentModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 2 }),
+      });
 
       await service.markExpired();
 
@@ -85,9 +101,14 @@ describe('BlockchainService', () => {
   describe('updatePaymentStatus', () => {
     it('should call findByIdAndUpdate with the correct id and status', async () => {
       const updated = { _id: 'p1', Status: PaymentStatus.PAID };
-      mockPaymentModel.findByIdAndUpdate.mockReturnValue({ exec: jest.fn().mockResolvedValue(updated) });
+      mockPaymentModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updated),
+      });
 
-      const result = await service.updatePaymentStatus('p1', PaymentStatus.PAID);
+      const result = await service.updatePaymentStatus(
+        'p1',
+        PaymentStatus.PAID,
+      );
 
       expect(mockPaymentModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'p1',

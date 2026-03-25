@@ -7,7 +7,9 @@ import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: PaymentRequest.name, schema: PaymentRequestSchema }]),
+    MongooseModule.forFeature([
+      { name: PaymentRequest.name, schema: PaymentRequestSchema },
+    ]),
     WalletModule,
   ],
   controllers: [PaymentController],
@@ -15,4 +17,3 @@ import { WalletModule } from '../wallet/wallet.module';
   exports: [PaymentService],
 })
 export class PaymentModule {}
-

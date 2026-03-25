@@ -300,13 +300,12 @@ export default function AnalyticsPage() {
                     </td>
                     <td className="px-5 py-3 text-center text-gray-500">{tx.confirmations}</td>
                     <td className="px-5 py-3 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        tx.status === "CONFIRMED"
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${tx.status === "CONFIRMED"
                           ? "bg-green-50 text-green-700"
                           : tx.status === "PENDING"
-                          ? "bg-yellow-50 text-yellow-700"
-                          : "bg-red-50 text-red-600"
-                      }`}>
+                            ? "bg-yellow-50 text-yellow-700"
+                            : "bg-red-50 text-red-600"
+                        }`}>
                         {tx.status}
                       </span>
                     </td>

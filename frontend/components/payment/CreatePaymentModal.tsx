@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import gsap from "gsap"
 import { paymentApi } from "@/services/api"
 
-type Currency = "ETH" | "USDT" | "USDC"
+type Currency = "ETH"
 
 interface Props {
   onClose: () => void
@@ -119,8 +119,6 @@ export default function CreatePaymentModal({ onClose, onCreated }: Props) {
                 className="px-3 py-2.5 rounded-xl border border-[var(--border)] text-sm font-medium text-gray-700 bg-white focus:outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary-light)] transition-all duration-200 cursor-pointer"
               >
                 <option value="ETH">ETH</option>
-                <option value="USDT">USDT</option>
-                <option value="USDC">USDC</option>
               </select>
             </div>
           </div>

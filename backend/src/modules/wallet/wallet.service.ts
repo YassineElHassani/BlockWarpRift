@@ -8,7 +8,8 @@ import { encrypt, decrypt } from '../../utils/encryption.util';
 @Injectable()
 export class WalletService {
   constructor(
-    @InjectModel(Wallet.name) private readonly walletModel: Model<WalletDocument>,
+    @InjectModel(Wallet.name)
+    private readonly walletModel: Model<WalletDocument>,
     private readonly configService: ConfigService,
   ) {}
 
@@ -31,7 +32,9 @@ export class WalletService {
       .findOne({ PaymentRequestId: paymentRequestId })
       .exec();
     if (!wallet) {
-      throw new NotFoundException(`Wallet for payment ${paymentRequestId} not found`);
+      throw new NotFoundException(
+        `Wallet for payment ${paymentRequestId} not found`,
+      );
     }
     const key = this.configService.get<string>('encryption.key', '');
     return decrypt(wallet.PrivateKeyEncrypted, key);

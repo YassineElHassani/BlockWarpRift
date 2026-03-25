@@ -1,8 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { PaymentRequest, PaymentRequestDocument, PaymentStatus } from '../payment/schemas/payment.schema';
-import { Transaction, TransactionDocument, TransactionStatus } from '../transaction/schemas/transaction.schema';
+import {
+  PaymentRequest,
+  PaymentRequestDocument,
+  PaymentStatus,
+} from '../payment/schemas/payment.schema';
+import {
+  Transaction,
+  TransactionDocument,
+  TransactionStatus,
+} from '../transaction/schemas/transaction.schema';
 
 @Injectable()
 export class AnalyticsService {
@@ -20,12 +28,22 @@ export class AnalyticsService {
   }> {
     const [totalResult, byDay, perCurrency] = await Promise.all([
       this.transactionModel.aggregate([
-        { $match: { MerchantId: merchantId, Status: TransactionStatus.CONFIRMED } },
+        {
+          $match: {
+            MerchantId: merchantId,
+            Status: TransactionStatus.CONFIRMED,
+          },
+        },
         { $group: { _id: null, total: { $sum: '$Amount' } } },
       ]),
 
       this.transactionModel.aggregate([
-        { $match: { MerchantId: merchantId, Status: TransactionStatus.CONFIRMED } },
+        {
+          $match: {
+            MerchantId: merchantId,
+            Status: TransactionStatus.CONFIRMED,
+          },
+        },
         {
           $group: {
             _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
@@ -37,16 +55,24 @@ export class AnalyticsService {
       ]),
 
       this.transactionModel.aggregate([
-        { $match: { MerchantId: merchantId, Status: TransactionStatus.CONFIRMED } },
+        {
+          $match: {
+            MerchantId: merchantId,
+            Status: TransactionStatus.CONFIRMED,
+          },
+        },
         { $group: { _id: '$Currency', revenue: { $sum: '$Amount' } } },
         { $project: { _id: 0, currency: '$_id', revenue: 1 } },
       ]),
     ]);
 
     return {
-      totalRevenue: totalResult[0]?.total ?? 0,
-      revenueByDay: byDay,
-      revenuePerCurrency: perCurrency,
+      totalRevenue: Number((totalResult as { total: number }[])[0]?.total ?? 0),
+      revenueByDay: byDay as { date: string; revenue: number }[],
+      revenuePerCurrency: perCurrency as {
+        currency: string;
+        revenue: number;
+      }[],
     };
   }
 
@@ -57,17 +83,27 @@ export class AnalyticsService {
     failed: number;
     recentTransactions: TransactionDocument[];
   }> {
-    const [total, confirmed, pending, failed, recentTransactions] = await Promise.all([
-      this.transactionModel.countDocuments({ MerchantId: merchantId }),
-      this.transactionModel.countDocuments({ MerchantId: merchantId, Status: TransactionStatus.CONFIRMED }),
-      this.transactionModel.countDocuments({ MerchantId: merchantId, Status: TransactionStatus.PENDING }),
-      this.transactionModel.countDocuments({ MerchantId: merchantId, Status: TransactionStatus.FAILED }),
-      this.transactionModel
-        .find({ MerchantId: merchantId })
-        .sort({ createdAt: -1 })
-        .limit(10)
-        .exec(),
-    ]);
+    const [total, confirmed, pending, failed, recentTransactions] =
+      await Promise.all([
+        this.transactionModel.countDocuments({ MerchantId: merchantId }),
+        this.transactionModel.countDocuments({
+          MerchantId: merchantId,
+          Status: TransactionStatus.CONFIRMED,
+        }),
+        this.transactionModel.countDocuments({
+          MerchantId: merchantId,
+          Status: TransactionStatus.PENDING,
+        }),
+        this.transactionModel.countDocuments({
+          MerchantId: merchantId,
+          Status: TransactionStatus.FAILED,
+        }),
+        this.transactionModel
+          .find({ MerchantId: merchantId })
+          .sort({ createdAt: -1 })
+          .limit(10)
+          .exec(),
+      ]);
 
     return { total, confirmed, pending, failed, recentTransactions };
   }
@@ -81,10 +117,22 @@ export class AnalyticsService {
   }> {
     const [total, paid, pending, expired, failed] = await Promise.all([
       this.paymentModel.countDocuments({ MerchantId: merchantId }),
-      this.paymentModel.countDocuments({ MerchantId: merchantId, Status: PaymentStatus.PAID }),
-      this.paymentModel.countDocuments({ MerchantId: merchantId, Status: PaymentStatus.PENDING }),
-      this.paymentModel.countDocuments({ MerchantId: merchantId, Status: PaymentStatus.EXPIRED }),
-      this.paymentModel.countDocuments({ MerchantId: merchantId, Status: PaymentStatus.FAILED }),
+      this.paymentModel.countDocuments({
+        MerchantId: merchantId,
+        Status: PaymentStatus.PAID,
+      }),
+      this.paymentModel.countDocuments({
+        MerchantId: merchantId,
+        Status: PaymentStatus.PENDING,
+      }),
+      this.paymentModel.countDocuments({
+        MerchantId: merchantId,
+        Status: PaymentStatus.EXPIRED,
+      }),
+      this.paymentModel.countDocuments({
+        MerchantId: merchantId,
+        Status: PaymentStatus.FAILED,
+      }),
     ]);
 
     return { total, paid, pending, expired, failed };
