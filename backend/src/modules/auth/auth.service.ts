@@ -1,26 +1,70 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/login.dto';
-import { UpdateAuthDto } from './dto/register.dto';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import { UsersService } from '../users/users.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtPayload } from '../../types';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
+
+  async register(dto: RegisterDto) {
+    const existing = await this.usersService.findByEmail(dto.email);
+    if (existing) {
+      throw new ConflictException('Email already in use');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 12);
+    const user = await this.usersService.create({
+      email: dto.email,
+      password: hashedPassword,
+    });
+
+    return {
+      message: 'Registration successful',
+      user: {
+        id: String(user._id),
+        email: user.Email,
+        role: user.Role,
+        walletAddress: user.WalletAddress || null,
+      },
+    };
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async login(dto: LoginDto) {
+    const user = await this.usersService.findByEmail(dto.email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid Email');
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    const isMatch = await bcrypt.compare(dto.password, user.Password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid Password');
+    }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    const payload: JwtPayload = {
+      sub: String(user._id),
+      email: user.Email,
+      role: user.Role,
+    };
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: String(user._id),
+        email: user.Email,
+        role: user.Role,
+        walletAddress: user.WalletAddress || null,
+      },
+    };
   }
 }

@@ -1,34 +1,52 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Delete,
+  Put,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
+import { JwtGuard } from '../../common/guards/jwt.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/user.decorator';
+import { UserRole } from './schemas/user.schema';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
+@UseGuards(JwtGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
-
   @Get()
+  @Roles(UserRole.ADMIN)
   findAll() {
     return this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  findById(@Param('id') id: string) {
+    return this.usersService.findById(id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Roles(UserRole.ADMIN)
+  delete(@Param('id') id: string) {
+    return this.usersService.delete(id);
+  }
+
+  @Put('wallet')
+  async updateWallet(
+    @CurrentUser() user: { userId: string },
+    @Body('walletAddress') walletAddress: string,
+  ) {
+    const updated = await this.usersService.updateWallet(
+      user.userId,
+      walletAddress,
+    );
+    return {
+      walletAddress: updated?.WalletAddress ?? null,
+    };
   }
 }

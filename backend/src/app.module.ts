@@ -1,14 +1,36 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { TransactionModule } from './modules/transaction/transaction.module';
+import { BlockchainModule } from './modules/blockchain/blockchain.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { WebSocketModule } from './modules/websocket/websocket.module';
+import configuration from './config/configuration';
 
 @Module({
-  imports: [UsersModule, AuthModule, PaymentModule, TransactionModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+    }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    DatabaseModule,
+    UsersModule,
+    AuthModule,
+    PaymentModule,
+    TransactionModule,
+    BlockchainModule,
+    AnalyticsModule,
+    WebSocketModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

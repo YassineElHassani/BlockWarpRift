@@ -1,2 +1,5 @@
 # IDE - VSCode
 .vscode
+
+# Environment variables
+.env
