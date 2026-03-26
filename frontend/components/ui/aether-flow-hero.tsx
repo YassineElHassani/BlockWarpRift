@@ -77,6 +77,10 @@ export default function AetherFlowHero() {
     const leftY = useSpring(useTransform(mouseY, [-1, 1], [-15, 15]), springConfig);
     const leftRotate = useSpring(useTransform(mouseX, [-1, 1], [2, -2]), springConfig);
 
+    // Center content follows cursor very subtly (depth between background and foreground)
+    const centerX = useSpring(useTransform(mouseX, [-1, 1], [-10, 10]), springConfig);
+    const centerY = useSpring(useTransform(mouseY, [-1, 1], [-6, 6]), springConfig);
+
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             const { innerWidth, innerHeight } = window;
@@ -205,7 +209,7 @@ export default function AetherFlowHero() {
             <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-80"></canvas>
 
             {/* Overlay HTML Content */}
-            <div className="relative z-10 text-center p-6 w-full max-w-7xl mx-auto flex flex-col items-center">
+            <motion.div style={{ x: centerX, y: centerY }} className="relative z-10 text-center p-6 w-full max-w-7xl mx-auto flex flex-col items-center">
 
                 <motion.h1
                     custom={1}
@@ -242,11 +246,11 @@ export default function AetherFlowHero() {
                         Sign In to Dashboard
                     </Link>
                 </motion.div>
-            </div>
+            </motion.div>
 
             <motion.div
                 style={{ x: rightX, y: rightY, rotate: rightRotate }}
-                className="absolute right-0 mt-50 w-250 h-64"
+                className="absolute right-0 mt-50 w-300 h-64"
             >
                 <DotLottieReact
                     src="crypto_animation.json"
