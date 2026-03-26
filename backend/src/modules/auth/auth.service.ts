@@ -64,7 +64,7 @@ export class AuthService {
         email: user.Email,
         role: user.Role,
         walletAddress: user.WalletAddress || null,
-      }
+      },
     };
   }
 }

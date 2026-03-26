@@ -25,6 +25,7 @@ export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
     }
 
     if (user && user.role && allowedRoles.includes(user.role)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAuthorized(true);
     } else {
       router.push("/unauthorized");

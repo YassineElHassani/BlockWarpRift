@@ -36,7 +36,6 @@ export enum PaymentStatus {
     },
   },
 })
-
 export class PaymentRequest {
   @Prop({ required: true })
   MerchantId!: string;

@@ -36,7 +36,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 mt-50">
       <div className="mb-8 text-center animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground mb-2">Create Account</h1>
         <p className="text-sm text-text-secondary">Start processing Web3 payments today</p>

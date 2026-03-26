@@ -1,14 +1,22 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { transactionApi } from "@/services/api";
+import gsap from "gsap";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, ExternalLink, Globe } from "lucide-react";
 
 export default function AllTransactionsPage() {
-  const [data, setData] = useState<{ data: any[], total: number }>({ data: [], total: 0 });
+  const [data, setData] = useState<{ data: any[]; total: number }>({ data: [], total: 0 });
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const headerRef = useRef<HTMLDivElement>(null);
 
-  const fetchTransactions = async (p: number) => {
+  const fetchTransactions = useCallback(async (p: number) => {
     setIsLoading(true);
     try {
       const res = await transactionApi.findAll_admin(p, 10);
@@ -18,88 +26,95 @@ export default function AllTransactionsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => { fetchTransactions(page); }, [fetchTransactions, page]);
 
   useEffect(() => {
-    fetchTransactions(page);
-  }, [page]);
+    if (isLoading) return;
+    const ctx = gsap.context(() => {
+      gsap.from(headerRef.current, { y: -16, opacity: 0, duration: 0.45, ease: "power2.out" });
+    });
+    return () => ctx.revert();
+  }, [isLoading]);
+
+  const totalPages = Math.max(1, Math.ceil((data.total || 0) / 10));
+
+  const statusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      CONFIRMED: "bg-green-50 text-green-700",
+      PENDING: "bg-amber-50 text-amber-700",
+      FAILED: "bg-red-50 text-red-600",
+    };
+    return <Badge className={styles[status] ?? "bg-gray-100 text-gray-500"}>{status}</Badge>;
+  };
+
+  const truncAddr = (a: string) => a ? `${a.slice(0, 8)}…${a.slice(-4)}` : "—";
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="mb-6 flex justify-between items-center border-b border-border pb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">All Transactions</h1>
-          <p className="text-text-secondary">Global overview of {data.total || 0} blockchain transactions</p>
+    <>
+      <div ref={headerRef} className="mb-8">
+        <div className="flex items-center gap-3 mb-1">
+          <Globe className="h-5 w-5 text-[var(--accent-dark)]" />
+          <h1 className="text-2xl font-bold tracking-tight">All Transactions</h1>
         </div>
+        <p className="text-sm text-muted-foreground ml-8">
+          Global overview of {data.total || 0} blockchain transactions
+        </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden text-sm">
-        <div className="overflow-x-auto min-h-[400px]">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-muted/50 border-b border-border font-semibold text-text-secondary">
-                <th className="px-6 py-4">TxHash</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">From</th>
-                <th className="px-6 py-4">To</th>
-                <th className="px-6 py-4">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-text-secondary animate-pulse">Loading global transactions...</td>
-                </tr>
-              ) : data.data.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-text-secondary">No transactions found across the platform.</td>
-                </tr>
-              ) : (
-                data.data.map((tx: any) => (
-                  <tr key={tx._id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 font-mono text-primary truncate max-w-[150px]" title={tx.txHash}>
-                      <a href={`https://sepolia.etherscan.io/tx/${tx.txHash}`} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                        {tx.txHash}
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-foreground">
-                      {tx.amount} {tx.currency}
-                    </td>
-                    <td className="px-6 py-4 font-mono text-gray-500 truncate max-w-[120px]" title={tx.fromAddress}>{tx.fromAddress}</td>
-                    <td className="px-6 py-4 font-mono text-gray-500 truncate max-w-[120px]" title={tx.toAddress}>{tx.toAddress}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 text-xs font-bold rounded-full ${
-                        tx.status === "CONFIRMED" ? "bg-accent/10 text-accent-dark" : "bg-orange-100 text-orange-600"
-                      }`}>
-                        {tx.status}
-                      </span>
-                    </td>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4 }}>
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 text-muted-foreground text-xs uppercase tracking-wide border-b border-border">
+                    <th className="px-5 py-4 text-left font-semibold">TxHash</th>
+                    <th className="px-5 py-4 text-right font-semibold">Amount</th>
+                    <th className="px-5 py-4 text-left font-semibold">From</th>
+                    <th className="px-5 py-4 text-left font-semibold">To</th>
+                    <th className="px-5 py-4 text-center font-semibold">Status</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-border flex items-center justify-between bg-muted/30">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1 || isLoading}
-            className="px-5 py-2.5 bg-white border border-border text-foreground rounded-xl disabled:opacity-50 hover:bg-gray-50 transition font-medium shadow-sm"
-          >
-            Previous
-          </button>
-          <span className="text-text-secondary font-medium px-4">Page {page}</span>
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={data.data.length < 10 || isLoading}
-            className="px-5 py-2.5 bg-white border border-border text-foreground rounded-xl disabled:opacity-50 hover:bg-gray-50 transition font-medium shadow-sm"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {isLoading ? (
+                    <tr><td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">Loading global transactions...</td></tr>
+                  ) : data.data.length === 0 ? (
+                    <tr><td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">No transactions found across the platform.</td></tr>
+                  ) : (
+                    data.data.map((tx: any) => (
+                      <tr key={tx._id} className="hover:bg-muted/30 transition-colors">
+                        <td className="px-5 py-4 font-mono text-xs">
+                          <a href={`https://sepolia.etherscan.io/tx/${tx.txHash}`} target="_blank" rel="noopener noreferrer" className="text-[var(--primary)] hover:underline flex items-center gap-1">
+                            {tx.txHash.slice(0, 10)}…{tx.txHash.slice(-6)}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </td>
+                        <td className="px-5 py-4 text-right font-semibold">{tx.amount} <span className="text-muted-foreground font-normal">{tx.currency}</span></td>
+                        <td className="px-5 py-4 font-mono text-xs text-muted-foreground" title={tx.fromAddress}>{truncAddr(tx.fromAddress)}</td>
+                        <td className="px-5 py-4 font-mono text-xs text-muted-foreground" title={tx.toAddress}>{truncAddr(tx.toAddress)}</td>
+                        <td className="px-5 py-4 text-center">{statusBadge(tx.status)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="p-4 border-t border-border flex items-center justify-between">
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1 || isLoading}>
+                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+              </Button>
+              <span className="text-sm text-muted-foreground font-medium">Page {page} of {totalPages}</span>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages || isLoading}>
+                Next <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </>
   );
 }

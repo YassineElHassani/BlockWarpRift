@@ -38,7 +38,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 mt-50">
       <div className="mb-8 text-center animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground mb-2">Welcome Back</h1>
         <p className="text-sm text-text-secondary">Sign in to manage your Web3 payments</p>

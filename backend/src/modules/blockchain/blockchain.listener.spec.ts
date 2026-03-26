@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { BlockchainListener } from './blockchain.listener';
 import { BlockchainService } from './blockchain.service';
@@ -103,7 +104,9 @@ describe('BlockchainListener', () => {
         Currency: Currency.ETH,
       };
 
-      mockTransactionService.findPendingTransactions.mockResolvedValue([pendingTx]);
+      mockTransactionService.findPendingTransactions.mockResolvedValue([
+        pendingTx,
+      ]);
       mockTransactionService.updateConfirmations.mockResolvedValue(undefined);
       mockBlockchainService.updatePaymentStatus.mockResolvedValue(undefined);
 
@@ -138,7 +141,9 @@ describe('BlockchainListener', () => {
         Currency: Currency.ETH,
       };
 
-      mockTransactionService.findPendingTransactions.mockResolvedValue([pendingTx]);
+      mockTransactionService.findPendingTransactions.mockResolvedValue([
+        pendingTx,
+      ]);
       mockTransactionService.updateConfirmations.mockResolvedValue(undefined);
 
       // currentBlock=100, txBlock=99 → 2 confirmations (< 3)
@@ -159,7 +164,9 @@ describe('BlockchainListener', () => {
         PaymentRequestId: 'pay1',
       };
 
-      mockTransactionService.findPendingTransactions.mockResolvedValue([pendingTx]);
+      mockTransactionService.findPendingTransactions.mockResolvedValue([
+        pendingTx,
+      ]);
 
       await (listener as any).processPendingTransactions(100);
 
@@ -386,7 +393,9 @@ describe('BlockchainListener', () => {
         new Date(),
       );
 
-      expect(mockTransactionService.findByTxHash).toHaveBeenCalledWith('0xVALID');
+      expect(mockTransactionService.findByTxHash).toHaveBeenCalledWith(
+        '0xVALID',
+      );
       expect(mockTransactionService.create).toHaveBeenCalled();
     });
 
@@ -404,7 +413,9 @@ describe('BlockchainListener', () => {
         }),
       };
 
-      mockTransactionService.findByTxHash.mockResolvedValue({ _id: 'existing' });
+      mockTransactionService.findByTxHash.mockResolvedValue({
+        _id: 'existing',
+      });
 
       await (listener as any).checkEthPayment(
         '0xWALLET',
@@ -417,7 +428,9 @@ describe('BlockchainListener', () => {
       );
 
       // findByTxHash was called for dedup, but create should NOT be called
-      expect(mockTransactionService.findByTxHash).toHaveBeenCalledWith('0xCLAIMED');
+      expect(mockTransactionService.findByTxHash).toHaveBeenCalledWith(
+        '0xCLAIMED',
+      );
       expect(mockTransactionService.create).not.toHaveBeenCalled();
     });
 

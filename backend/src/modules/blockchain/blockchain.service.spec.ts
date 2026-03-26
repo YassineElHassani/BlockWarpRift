@@ -72,7 +72,11 @@ describe('BlockchainService', () => {
 
       const result = await service.getPendingPayments();
 
-      const query = mockPaymentModel.find.mock.calls[0][0];
+      const calls = mockPaymentModel.find.mock.calls as {
+        Status: string;
+        ExpiresAt: unknown;
+      }[][];
+      const query = calls[0][0];
       expect(query.Status).toBe(PaymentStatus.PENDING);
       expect(query.ExpiresAt).toBeDefined();
       expect(result).toEqual(mockPayments);
@@ -87,7 +91,10 @@ describe('BlockchainService', () => {
 
       await service.markExpired();
 
-      const [filter, update] = mockPaymentModel.updateMany.mock.calls[0];
+      const [filter, update] = mockPaymentModel.updateMany.mock.calls[0] as [
+        { Status: string; ExpiresAt: unknown },
+        { $set: { Status: string } },
+      ];
       expect(filter.Status).toBe(PaymentStatus.PENDING);
       expect(filter.ExpiresAt).toBeDefined();
       expect(update).toEqual({ $set: { Status: PaymentStatus.EXPIRED } });

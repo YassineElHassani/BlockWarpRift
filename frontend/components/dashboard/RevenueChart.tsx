@@ -37,7 +37,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
         fill: true,
         label: "Revenue",
         data: data.map((d) => d.revenue),
-        borderColor: "#6c47ff",
+        borderColor: "#2563eb",
         backgroundColor: "rgba(108, 71, 255, 0.1)",
         tension: 0.4,
         pointRadius: 0,

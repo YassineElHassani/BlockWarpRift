@@ -13,6 +13,12 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const { user, isAuthenticated, logout } = useAuthStore();
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,7 +37,7 @@ export default function Navbar() {
     );
   }, []);
 
-  const navLinks = isAuthenticated
+  const navLinks = hydrated && isAuthenticated
     ? user?.role === "ADMIN"
       ? [
           { name: "Admin Dashboard", path: "/admin/dashboard" },
@@ -40,8 +46,8 @@ export default function Navbar() {
         ]
       : [
           { name: "Dashboard", path: "/dashboard" },
-          { name: "Payments", path: "/payment" },
-          { name: "Transactions", path: "/transaction" },
+          { name: "Payments", path: "/dashboard/payments" },
+          { name: "Transactions", path: "/dashboard/transactions" },
         ]
     : [
         { name: "Solutions", path: "/solutions" },
@@ -79,23 +85,26 @@ export default function Navbar() {
               key={link.path}
               href={link.path}
               className={classNames(
-                "text-sm font-medium transition-colors hover:text-primary relative group",
-                pathname === link.path ? "text-primary" : "text-text-secondary"
+                "text-sm font-medium transition-all duration-200 relative group py-1",
+                pathname === link.path ? "text-primary" : "text-text-secondary hover:text-foreground"
               )}
             >
               {link.name}
-              {pathname === link.path && (
-                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full" />
-              )}
+              <span
+                className={classNames(
+                  "absolute -bottom-1 left-0 h-0.5 bg-primary rounded-full transition-all duration-300",
+                  pathname === link.path ? "w-full" : "w-0 group-hover:w-full"
+                )}
+              />
             </Link>
           ))}
         </nav>
 
         <div className="flex items-center gap-4">
-          {isAuthenticated ? (
+          {hydrated && isAuthenticated ? (
             <button
               onClick={logout}
-              className="text-sm font-medium text-text-secondary hover:text-foreground transition-colors"
+              className="text-sm font-medium text-text-secondary hover:text-destructive hover:bg-destructive/10 px-3 py-1.5 rounded-lg transition-all duration-200"
             >
               Log out
             </button>

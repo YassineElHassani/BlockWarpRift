@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import PageWrapper from "@/components/layout/PageWrapper";
+
 const inter = Inter({
-  variable: "--font-geist-sans",
+  variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "BlockWarpRift — Crypto Payment Gateway",
+  title: "BlockWarpRift - Crypto Payment Gateway",
   description: "Accept ETH payments on Ethereum Sepolia with real-time confirmation.",
-  icons: { icon: "/favicon.ico" },
+  icons: { icon: "/icon.png" },
 };
 
 export default function RootLayout({
@@ -22,9 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased bg-background text-foreground`}>
-        <Navbar />
-        <PageWrapper>{children}</PageWrapper>
+      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
+        {children}
       </body>
     </html>
   )

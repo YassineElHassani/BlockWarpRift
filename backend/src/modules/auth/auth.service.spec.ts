@@ -9,7 +9,9 @@ jest.mock('bcrypt', () => ({
   compare: jest.fn(),
 }));
 
-const bcrypt = require('bcrypt') as { hash: jest.Mock; compare: jest.Mock };
+const bcrypt = jest.requireMock<{ hash: jest.Mock; compare: jest.Mock }>(
+  'bcrypt',
+);
 
 describe('AuthService', () => {
   let service: AuthService;

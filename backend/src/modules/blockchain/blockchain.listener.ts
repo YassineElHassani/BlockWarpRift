@@ -19,7 +19,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
     private readonly blockchainService: BlockchainService,
     private readonly transactionService: TransactionService,
     private readonly paymentGateway: PaymentGateway,
-  ) { }
+  ) {}
 
   onApplicationBootstrap() {
     this.logger.log('Starting blockchain listener...');
@@ -62,7 +62,9 @@ export class BlockchainListener implements OnApplicationBootstrap {
     }
   }
 
-  private async processPendingTransactions(currentBlock: number): Promise<void> {
+  private async processPendingTransactions(
+    currentBlock: number,
+  ): Promise<void> {
     const pendingTxs = await this.transactionService.findPendingTransactions();
     for (const tx of pendingTxs) {
       if (!tx.BlockNumber) continue;
@@ -122,7 +124,9 @@ export class BlockchainListener implements OnApplicationBootstrap {
     provider: ethers.JsonRpcProvider,
     createdAt?: Date,
   ): Promise<void> {
-    const secondsSinceCreation = createdAt ? Math.floor((Date.now() - createdAt.getTime()) / 1000) : 300;
+    const secondsSinceCreation = createdAt
+      ? Math.floor((Date.now() - createdAt.getTime()) / 1000)
+      : 300;
     const blockLookback = Math.ceil(secondsSinceCreation / 12) + 10;
     const fromBlock = Math.max(0, currentBlock - blockLookback);
 
@@ -136,13 +140,22 @@ export class BlockchainListener implements OnApplicationBootstrap {
         withMetadata: false,
         excludeZeroValue: true,
       },
-    ])) as { transfers: Array<{ hash: string; from: string; value: number; blockNum: string }> };
+    ])) as {
+      transfers: Array<{
+        hash: string;
+        from: string;
+        value: number;
+        blockNum: string;
+      }>;
+    };
 
     for (const transfer of result?.transfers ?? []) {
       if (transfer.value < expectedAmount) continue;
 
       // Skip transactions already claimed by another payment (shared merchant wallet)
-      const existingTx = await this.transactionService.findByTxHash(transfer.hash);
+      const existingTx = await this.transactionService.findByTxHash(
+        transfer.hash,
+      );
       if (existingTx) continue;
 
       const txBlock = parseInt(transfer.blockNum, 16);

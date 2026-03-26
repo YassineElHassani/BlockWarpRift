@@ -19,7 +19,7 @@ export function useMetaMask() {
     setError(null)
 
     if (typeof window === "undefined" || !window.ethereum) {
-      setError("MetaMask is not installed")
+      setError("No MetaMask or compatible wallet is installed")
       return
     }
 
@@ -41,8 +41,58 @@ export function useMetaMask() {
       }
       setAccount(address)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to connect wallet"
+      if ((err as { code?: number })?.code === 4001) {
+        // User rejected — do nothing
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to connect wallet")
+      }
+    } finally {
+      setIsConnecting(false)
+    }
+  }, [token, user, login])
+
+  const disconnect = useCallback(async () => {
+    try {
+      await usersApi.updateWallet("")
+      if (token && user) {
+        login(token, { ...user, walletAddress: undefined })
+      }
+      setAccount(null)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to disconnect wallet"
       setError(msg)
+    }
+  }, [token, user, login])
+
+  const reconnect = useCallback(async () => {
+    setError(null)
+    if (typeof window === "undefined" || !window.ethereum) {
+      setError("No MetaMask or compatible wallet is installed")
+      return
+    }
+    setIsConnecting(true)
+    try {
+      // Force MetaMask account picker
+      await window.ethereum.request({
+        method: "wallet_requestPermissions",
+        params: [{ eth_accounts: {} }],
+      })
+      const accounts = (await window.ethereum.request({
+        method: "eth_accounts",
+      })) as string[]
+      const address = accounts[0]
+      if (!address) throw new Error("No account selected")
+      await usersApi.updateWallet(address)
+      if (token && user) {
+        login(token, { ...user, walletAddress: address })
+      }
+      setAccount(address)
+    } catch (err: unknown) {
+      if ((err as { code?: number })?.code === 4001) {
+        // User rejected — do nothing
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to switch wallet")
+      }
     } finally {
       setIsConnecting(false)
     }
@@ -73,5 +123,5 @@ export function useMetaMask() {
     }
   }, [account, token, user, login])
 
-  return { account, isConnecting, error, connect }
+  return { account, isConnecting, error, connect, disconnect, reconnect }
 }

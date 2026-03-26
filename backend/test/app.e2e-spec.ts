@@ -70,14 +70,23 @@ describe('App (e2e)', () => {
     it('should reject unexpected fields with 400', () => {
       return request(app.getHttpServer())
         .post('/api/auth/register')
-        .send({ email: 'test@example.com', password: 'password123', role: 'ADMIN' })
+        .send({
+          email: 'test@example.com',
+          password: 'password123',
+          role: 'ADMIN',
+        })
         .expect(400);
     });
 
     it('should accept valid payload and call authService.register', async () => {
       mockAuthService.register.mockResolvedValue({
         message: 'User registered',
-        user: { id: '123', email: 'test@example.com', role: 'MERCHANT', walletAddress: null },
+        user: {
+          id: '123',
+          email: 'test@example.com',
+          role: 'MERCHANT',
+          walletAddress: null,
+        },
       });
 
       const res = await request(app.getHttpServer())
@@ -86,7 +95,9 @@ describe('App (e2e)', () => {
         .expect(201);
 
       expect(res.body).toHaveProperty('user');
-      expect(res.body.user.email).toBe('test@example.com');
+      expect((res.body as { user: { email: string } }).user.email).toBe(
+        'test@example.com',
+      );
       expect(mockAuthService.register).toHaveBeenCalled();
     });
   });
@@ -102,7 +113,12 @@ describe('App (e2e)', () => {
     it('should accept valid credentials and call authService.login', async () => {
       mockAuthService.login.mockResolvedValue({
         access_token: 'jwt-token',
-        user: { id: '123', email: 'test@example.com', role: 'MERCHANT', walletAddress: null },
+        user: {
+          id: '123',
+          email: 'test@example.com',
+          role: 'MERCHANT',
+          walletAddress: null,
+        },
       });
 
       const res = await request(app.getHttpServer())
@@ -111,7 +127,9 @@ describe('App (e2e)', () => {
         .expect(200);
 
       expect(res.body).toHaveProperty('access_token');
-      expect(res.body.access_token).toBe('jwt-token');
+      expect((res.body as { access_token: string }).access_token).toBe(
+        'jwt-token',
+      );
     });
   });
 });

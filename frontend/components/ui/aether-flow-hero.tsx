@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Zap } from 'lucide-react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-
-// A utility function for class names
-const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(' ');
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 class Particle {
     x: number;
@@ -64,6 +62,31 @@ class Particle {
 export default function AetherFlowHero() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
+    // Mouse position for parallax
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+    const springConfig = { damping: 50, stiffness: 500 };
+
+    // Right lottie moves more (foreground feel)
+    const rightX = useSpring(useTransform(mouseX, [-1, 1], [30, -30]), springConfig);
+    const rightY = useSpring(useTransform(mouseY, [-1, 1], [20, -20]), springConfig);
+    const rightRotate = useSpring(useTransform(mouseX, [-1, 1], [-3, 3]), springConfig);
+
+    // Left lottie moves opposite / less (depth parallax)
+    const leftX = useSpring(useTransform(mouseX, [-1, 1], [-20, 20]), springConfig);
+    const leftY = useSpring(useTransform(mouseY, [-1, 1], [-15, 15]), springConfig);
+    const leftRotate = useSpring(useTransform(mouseX, [-1, 1], [2, -2]), springConfig);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            const { innerWidth, innerHeight } = window;
+            mouseX.set((e.clientX / innerWidth) * 2 - 1);
+            mouseY.set((e.clientY / innerHeight) * 2 - 1);
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, [mouseX, mouseY]);
+
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -86,7 +109,7 @@ export default function AetherFlowHero() {
                 const directionX = (Math.random() * 0.4) - 0.2;
                 const directionY = (Math.random() * 0.4) - 0.2;
                 // Adapted color to match the primary theme of BlockWarpRift (light mode)
-                const color = 'rgba(108, 71, 255, 0.4)';
+                const color = 'rgba(37, 99, 235, 0.4)';
                 particles.push(new Particle(x, y, directionX, directionY, size, color));
             }
         };
@@ -114,9 +137,9 @@ export default function AetherFlowHero() {
                         const distance_mouse_a = Math.sqrt(dx_mouse_a * dx_mouse_a + dy_mouse_a * dy_mouse_a);
 
                         if (mouse.x && distance_mouse_a < mouse.radius) {
-                            ctx!.strokeStyle = `rgba(108, 71, 255, ${opacityValue})`;
+                            ctx!.strokeStyle = `rgba(37, 99, 235, ${opacityValue})`;
                         } else {
-                            ctx!.strokeStyle = `rgba(108, 71, 255, ${opacityValue * 0.2})`;
+                            ctx!.strokeStyle = `rgba(37, 99, 235, ${opacityValue * 0.2})`;
                         }
 
                         ctx!.lineWidth = 1;
@@ -179,7 +202,7 @@ export default function AetherFlowHero() {
 
     return (
         <div className="relative w-screen min-h-[90vh]  flex flex-col items-center justify-center overflow-hidden mb-20 bg-white">
-            <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-50"></canvas>
+            <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-80"></canvas>
 
             {/* Overlay HTML Content */}
             <div className="relative z-10 text-center p-6 w-full max-w-7xl mx-auto flex flex-col items-center">
@@ -191,7 +214,7 @@ export default function AetherFlowHero() {
                     animate="visible"
                     className="text-5xl md:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-linear-to-b from-foreground to-gray-500"
                 >
-                    BlockWarp <span className="text-primary">Rift</span>
+                    BlockWarp<span className="text-primary">Rift</span>
                 </motion.h1>
 
                 <motion.p
@@ -220,6 +243,28 @@ export default function AetherFlowHero() {
                     </Link>
                 </motion.div>
             </div>
+
+            <motion.div
+                style={{ x: rightX, y: rightY, rotate: rightRotate }}
+                className="absolute right-0 mt-50 w-250 h-64"
+            >
+                <DotLottieReact
+                    src="crypto_animation.json"
+                    loop
+                    autoplay
+                />
+            </motion.div>
+
+            <motion.div
+                style={{ x: leftX, y: leftY, rotate: leftRotate }}
+                className="absolute left-20 mb-50 w-250 h-64 rotate-180"
+            >
+                <DotLottieReact
+                    src="ethereum_animation.json"
+                    loop
+                    autoplay
+                />
+            </motion.div>
         </div>
     );
 }

@@ -221,16 +221,6 @@ export default function PublicPaymentPage() {
 
   return (
     <div ref={pageRef} className="min-h-screen bg-[var(--muted)] flex flex-col items-center justify-center p-4 py-12">
-      {/* Branding */}
-      <div className="flex items-center gap-2.5 mb-8">
-        <div className="w-9 h-9 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-sm shadow-purple-200">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 2L14 5.5V10.5L8 14L2 10.5V5.5L8 2Z" stroke="white" strokeWidth="1.4" strokeLinejoin="round" />
-            <circle cx="8" cy="8" r="2" fill="white" />
-          </svg>
-        </div>
-        <span className="font-bold text-gray-800 tracking-tight">BlockWarpRift</span>
-      </div>
 
       <div ref={cardRef} className="bg-white rounded-3xl border border-[var(--border)] shadow-lg w-full max-w-md overflow-hidden">
         {/* Status banner */}
