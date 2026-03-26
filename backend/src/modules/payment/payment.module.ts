@@ -3,14 +3,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { PaymentRequest, PaymentRequestSchema } from './schemas/payment.schema';
-import { WalletModule } from '../wallet/wallet.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: PaymentRequest.name, schema: PaymentRequestSchema },
     ]),
-    WalletModule,
+    UsersModule,
   ],
   controllers: [PaymentController],
   providers: [PaymentService],

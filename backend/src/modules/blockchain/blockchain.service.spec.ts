@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -44,6 +43,13 @@ describe('BlockchainService', () => {
     jest.clearAllMocks();
   });
 
+  describe('getProvider', () => {
+    it('should return the initialized provider', () => {
+      const provider = service.getProvider();
+      expect(provider).toBeDefined();
+    });
+  });
+
   describe('parseEthAmount', () => {
     it('should convert wei to ETH correctly', () => {
       expect(service.parseEthAmount(ethers.parseEther('1.5'))).toBeCloseTo(
@@ -54,16 +60,6 @@ describe('BlockchainService', () => {
 
     it('should return 0 for zero wei', () => {
       expect(service.parseEthAmount(0n)).toBe(0);
-    });
-  });
-
-  describe('parseTokenAmount', () => {
-    it('should convert 6-decimal token units to a float', () => {
-      expect(service.parseTokenAmount(1_000_000n)).toBeCloseTo(1.0, 5);
-    });
-
-    it('should handle amounts with decimals', () => {
-      expect(service.parseTokenAmount(500_000n)).toBeCloseTo(0.5, 5);
     });
   });
 
@@ -116,13 +112,6 @@ describe('BlockchainService', () => {
         { new: true },
       );
       expect(result).toEqual(updated);
-    });
-  });
-
-  describe('getErc20Interface', () => {
-    it('should return a valid ethers Interface', () => {
-      const iface = service.getErc20Interface();
-      expect(iface).toBeInstanceOf(ethers.Interface);
     });
   });
 });

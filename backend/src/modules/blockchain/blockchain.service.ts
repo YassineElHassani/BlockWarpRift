@@ -15,15 +15,10 @@ import {
   PaymentStatus,
 } from '../payment/schemas/payment.schema';
 
-// Minimal ERC-20 Transfer event ABI
-const ERC20_TRANSFER_ABI = [
-  'event Transfer(address indexed from, address indexed to, uint256 value)',
-];
-
 @Injectable()
 export class BlockchainService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(BlockchainService.name);
-  private provider: ethers.JsonRpcProvider;
+  private provider!: ethers.JsonRpcProvider;
 
   constructor(
     private readonly configService: ConfigService,
@@ -72,13 +67,5 @@ export class BlockchainService implements OnModuleInit, OnModuleDestroy {
 
   parseEthAmount(value: bigint): number {
     return parseFloat(ethers.formatEther(value));
-  }
-
-  parseTokenAmount(value: bigint, decimals = 6): number {
-    return parseFloat(ethers.formatUnits(value, decimals));
-  }
-
-  getErc20Interface(): ethers.Interface {
-    return new ethers.Interface(ERC20_TRANSFER_ABI);
   }
 }

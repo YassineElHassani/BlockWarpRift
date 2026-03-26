@@ -239,10 +239,10 @@ export default function AnalyticsPage() {
           ) : (
             <div className="space-y-2">
               {[
-                { label: "Paid", value: pmtStats.paid, color: "bg-green-400" },
-                { label: "Pending", value: pmtStats.pending, color: "bg-yellow-400" },
-                { label: "Expired", value: pmtStats.expired, color: "bg-gray-300" },
-                { label: "Failed", value: pmtStats.failed, color: "bg-red-400" },
+                { label: "Paid", value: pmtStats.paid, color: "bg-green-500" },
+                { label: "Pending", value: pmtStats.pending, color: "bg-yellow-500" },
+                { label: "Expired", value: pmtStats.expired, color: "bg-gray-400" },
+                { label: "Failed", value: pmtStats.failed, color: "bg-red-500" },
               ].map(row => {
                 const pct = pmtStats.total > 0 ? (row.value / pmtStats.total) * 100 : 0
                 return (

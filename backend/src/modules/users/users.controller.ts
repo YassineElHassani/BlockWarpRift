@@ -1,7 +1,8 @@
-import { Controller, Get, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Put, Body, UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../../common/guards/jwt.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/user.decorator';
 import { UserRole } from './schemas/user.schema';
 import { UsersService } from './users.service';
 
@@ -25,5 +26,19 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   delete(@Param('id') id: string) {
     return this.usersService.delete(id);
+  }
+
+  @Put('wallet')
+  async updateWallet(
+    @CurrentUser() user: { userId: string },
+    @Body('walletAddress') walletAddress: string,
+  ) {
+    const updated = await this.usersService.updateWallet(
+      user.userId,
+      walletAddress,
+    );
+    return {
+      walletAddress: updated?.WalletAddress ?? null,
+    };
   }
 }

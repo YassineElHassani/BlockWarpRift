@@ -34,4 +34,13 @@ export class UsersService {
   async delete(id: string): Promise<void> {
     await this.userModel.findByIdAndDelete(id).exec();
   }
+
+  async updateWallet(
+    id: string,
+    walletAddress: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(id, { WalletAddress: walletAddress }, { new: true })
+      .exec();
+  }
 }

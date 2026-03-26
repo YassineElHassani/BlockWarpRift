@@ -23,9 +23,9 @@ export default function DevelopersPage() {
         </div>
         <div className="bg-muted border border-border rounded-2xl p-6 shadow-sm overflow-hidden">
           <div className="flex gap-2 mb-4">
-            <div className="w-3 h-3 rounded-full bg-red-400"></div>
-            <div className="w-3 h-3 rounded-full bg-orange-400"></div>
-            <div className="w-3 h-3 rounded-full bg-green-400"></div>
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
           </div>
           <pre className="text-sm font-mono text-gray-700 overflow-x-auto">
             <code>
@@ -34,8 +34,8 @@ const res = await fetch("api/payment/create", {
   method: "POST",
   headers: { "Authorization": \`Bearer \${API_KEY}\` },
   body: JSON.stringify({
-    amount: 150.00,
-    currency: "USDT",
+    amount: 0.05,
+    currency: "ETH",
     description: "Order #4091"
   })
 });

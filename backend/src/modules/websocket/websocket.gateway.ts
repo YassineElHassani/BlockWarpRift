@@ -18,7 +18,7 @@ export class PaymentGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   private readonly logger = new Logger(PaymentGateway.name);
 

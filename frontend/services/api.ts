@@ -60,4 +60,6 @@ export const analyticsApi = {
 export const usersApi = {
   findAll: () => api.get("/users"),
   remove: (id: string) => api.delete(`/users/${id}`),
+  updateWallet: (walletAddress: string) =>
+    api.put<{ walletAddress: string }>("/users/wallet", { walletAddress }),
 }
