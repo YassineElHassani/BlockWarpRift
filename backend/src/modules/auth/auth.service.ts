@@ -35,6 +35,7 @@ export class AuthService {
         id: String(user._id),
         email: user.Email,
         role: user.Role,
+        walletAddress: user.WalletAddress || null,
       },
     };
   }
@@ -62,6 +63,7 @@ export class AuthService {
         id: String(user._id),
         email: user.Email,
         role: user.Role,
+        walletAddress: user.WalletAddress || null,
       }
     };
   }

@@ -21,6 +21,9 @@ export class User {
     default: UserRole.MERCHANT,
   })
   Role!: UserRole;
+
+  @Prop({ default: null })
+  WalletAddress?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

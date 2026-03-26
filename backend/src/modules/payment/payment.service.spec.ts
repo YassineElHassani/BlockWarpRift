@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { NotFoundException } from '@nestjs/common';
-import { Types } from 'mongoose';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { PaymentRequest, PaymentStatus } from './schemas/payment.schema';
-import { WalletService } from '../wallet/wallet.service';
-import * as walletUtil from '../../utils/wallet-generator.util';
+import { UsersService } from '../users/users.service';
 import * as qrUtil from '../../utils/qr-generator.util';
 
 describe('PaymentService', () => {
@@ -18,8 +16,8 @@ describe('PaymentService', () => {
     findOne: jest.fn(),
   };
 
-  const mockWalletService = {
-    saveWallet: jest.fn(),
+  const mockUsersService = {
+    findById: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -30,7 +28,7 @@ describe('PaymentService', () => {
           provide: getModelToken(PaymentRequest.name),
           useValue: mockPaymentModel,
         },
-        { provide: WalletService, useValue: mockWalletService },
+        { provide: UsersService, useValue: mockUsersService },
       ],
     }).compile();
 
@@ -39,26 +37,24 @@ describe('PaymentService', () => {
   });
 
   describe('create', () => {
-    it('should generate a wallet, create the payment record and persist the wallet key', async () => {
-      jest.spyOn(walletUtil, 'generateWallet').mockReturnValue({
-        address: '0xWALLET',
-        privateKey: '0xPRIVKEY',
+    it('should use the merchant wallet address and create the payment record', async () => {
+      mockUsersService.findById.mockResolvedValue({
+        _id: 'merchant1',
+        WalletAddress: '0xMERCHANT',
       });
       jest
         .spyOn(qrUtil, 'generateEIP681QR')
         .mockResolvedValue('data:image/png;base64,QR');
 
-      const fakeId = new Types.ObjectId();
       const mockPayment = {
-        _id: fakeId,
+        _id: 'pay1',
         MerchantId: 'merchant1',
         Amount: 0.1,
         Currency: 'ETH',
-        WalletAddress: '0xWALLET',
+        WalletAddress: '0xMERCHANT',
         Status: PaymentStatus.PENDING,
       };
       mockPaymentModel.create.mockResolvedValue(mockPayment);
-      mockWalletService.saveWallet.mockResolvedValue(undefined);
 
       const result = await service.create(
         { amount: 0.1, currency: 'ETH' as any },
@@ -70,26 +66,32 @@ describe('PaymentService', () => {
           MerchantId: 'merchant1',
           Amount: 0.1,
           Currency: 'ETH',
-          WalletAddress: '0xWALLET',
+          WalletAddress: '0xMERCHANT',
           QrCodeUrl: 'data:image/png;base64,QR',
           Status: PaymentStatus.PENDING,
         }),
       );
-      expect(mockWalletService.saveWallet).toHaveBeenCalledWith(
-        '0xWALLET',
-        '0xPRIVKEY',
-        fakeId.toString(),
-      );
       expect(result).toEqual(mockPayment);
     });
 
+    it('should throw BadRequestException when merchant has no wallet', async () => {
+      mockUsersService.findById.mockResolvedValue({
+        _id: 'merchant1',
+        WalletAddress: null,
+      });
+
+      await expect(
+        service.create({ amount: 1, currency: 'ETH' as any }, 'merchant1'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('should set ExpiresAt 15 minutes in the future', async () => {
-      jest
-        .spyOn(walletUtil, 'generateWallet')
-        .mockReturnValue({ address: '0xA', privateKey: '0xB' });
+      mockUsersService.findById.mockResolvedValue({
+        _id: 'm1',
+        WalletAddress: '0xA',
+      });
       jest.spyOn(qrUtil, 'generateEIP681QR').mockResolvedValue('data:qr');
-      mockPaymentModel.create.mockResolvedValue({ _id: new Types.ObjectId() });
-      mockWalletService.saveWallet.mockResolvedValue(undefined);
+      mockPaymentModel.create.mockResolvedValue({ _id: 'p1' });
 
       const before = Date.now();
       await service.create({ amount: 1, currency: 'ETH' as any }, 'm1');

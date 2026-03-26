@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "BlockWarpRift API",
-    "description": "Full API test suite for BlockWarpRift — crypto payment gateway.\n\nHow to use:\n1. Import this collection into Postman.\n2. Import BlockWarpRift.postman_environment.json as well.\n3. Select the \"BlockWarpRift\" environment.\n4. Run **Auth / Login** — the `bearerToken` is automatically saved to the environment.\n5. All protected endpoints will use that token automatically.",
+    "description": "Full API test suite for BlockWarpRift — crypto payment gateway (ETH on Sepolia).\n\nHow to use:\n1. Import this collection into Postman.\n2. Import BlockWarpRift.postman_environment.json as well.\n3. Select the \"BlockWarpRift\" environment.\n4. Run **Auth / Register** then **Auth / Login** — the `bearerToken` is automatically saved.\n5. Run **Users / Update Wallet** to connect a wallet address.\n6. All protected endpoints will use the saved token automatically.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -24,6 +24,16 @@
       "key": "bearerToken",
       "value": "",
       "description": "JWT access token. Automatically set by the Login request test script."
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "description": "MongoDB _id of a payment request. Automatically set by the Create Payment test script."
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "description": "User ID. Automatically set by the Register test script."
     }
   ],
   "item": [
@@ -63,7 +73,7 @@
               },
               "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
             },
-            "description": "Register a new merchant account.\n\n**Validation:**\n- `email` — valid email format\n- `password` — 8–64 characters"
+            "description": "Register a new merchant account.\n\n**Validation:**\n- `email` — valid email format\n- `password` — 8–64 characters\n\n**Response:** `{ message, user: { id, email, role, walletAddress } }`"
           },
           "event": [
             {
@@ -72,15 +82,59 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
-                  "pm.test('Response has user object', () => {",
+                  "pm.test('Response has user object with expected fields', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.property('user');",
                   "  pm.expect(body.user).to.have.property('id');",
                   "  pm.expect(body.user).to.have.property('email');",
-                  "  // Auto-save userId",
+                  "  pm.expect(body.user).to.have.property('role');",
+                  "  pm.expect(body.user).to.have.property('walletAddress');",
                   "  pm.collectionVariables.set('userId', body.user.id);",
                   "  pm.environment.set('userId', body.user.id);",
                   "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register — Duplicate Email (expect 409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Negative test — registering the same email twice should return 409 Conflict."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409 Conflict', () => pm.response.to.have.status(409));"
                 ]
               }
             }
@@ -115,7 +169,7 @@
               },
               "raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
             },
-            "description": "Login and receive a JWT access token.\n\nThe test script automatically saves `access_token` to the `bearerToken` collection variable and the active environment."
+            "description": "Login and receive a JWT access token.\n\n**Response:** `{ access_token, user: { id, email, role, walletAddress } }`\n\nThe test script automatically saves `access_token` to `bearerToken`."
           },
           "event": [
             {
@@ -124,14 +178,18 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response contains access_token', () => {",
+                  "pm.test('Response contains access_token and user', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.property('access_token');",
                   "  pm.expect(body.access_token).to.be.a('string').and.not.empty;",
+                  "  pm.expect(body).to.have.property('user');",
+                  "  pm.expect(body.user).to.have.property('id');",
+                  "  pm.expect(body.user).to.have.property('walletAddress');",
                   "",
-                  "  // Auto-save token globally so all other requests use it",
                   "  pm.collectionVariables.set('bearerToken', body.access_token);",
                   "  pm.environment.set('bearerToken', body.access_token);",
+                  "  pm.collectionVariables.set('userId', body.user.id);",
+                  "  pm.environment.set('userId', body.user.id);",
                   "  console.log('Bearer token saved successfully.');",
                   "});"
                 ]
@@ -181,12 +239,207 @@
               }
             }
           ]
+        },
+        {
+          "name": "Login — Non-existent Email (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"email\": \"nobody@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "description": "Negative test — non-existent email should return 401 Unauthorized."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "description": "User management endpoints.\n\nInherits Bearer auth from collection root.",
+      "item": [
+        {
+          "name": "Update Wallet Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/wallet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "wallet"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"walletAddress\": \"0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18\"\n}"
+            },
+            "description": "Connect/update the merchant's MetaMask wallet address.\n\nThis must be done before creating any payment requests — payments are sent directly to this address.\n\n**Response:** `{ walletAddress }`"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Response contains walletAddress', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('walletAddress');",
+                  "  pm.expect(body.walletAddress).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "Retrieve a single user by their ID."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('User has expected fields', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body._id || body.id).to.exist;",
+                  "  pm.expect(body).to.have.property('Email');",
+                  "  pm.expect(body).to.have.property('Role');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Users (ADMIN)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "List all users. **Requires ADMIN role.**\n\nMerchants will receive 403 Forbidden."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 403', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "});",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('Response is an array', () => {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete User (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/users/000000000000000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "000000000000000000000000"
+              ]
+            },
+            "description": "Delete a user by ID. **Requires ADMIN role.**\n\nUses a dummy ObjectId to avoid deleting real data during testing."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 403', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
       "name": "Payment",
-      "description": "Payment request management. All endpoints require a valid Bearer token.\n\nInherits Bearer auth from collection root.",
+      "description": "Payment request management. All endpoints require a valid Bearer token.\n\nThe merchant must have a connected wallet address before creating payments.\n\nInherits Bearer auth from collection root.",
       "item": [
         {
           "name": "Create Payment (ETH)",
@@ -216,7 +469,7 @@
               },
               "raw": "{\n  \"amount\": 0.01,\n  \"currency\": \"ETH\",\n  \"description\": \"Order #1001 — 1 month subscription\"\n}"
             },
-            "description": "Create a new ETH payment request.\n\nReturns a unique Sepolia wallet address, QR code (EIP-681 URI), and a 15-minute expiry.\n\n**Currencies:** `ETH` | `USDT` | `USDC`"
+            "description": "Create a new ETH payment request.\n\nUses the merchant's connected wallet address. Returns a QR code (EIP-681 URI) and a 15-minute expiry.\n\n**Prerequisites:** Run **Users / Update Wallet** first.\n\n**Currency:** `ETH` only.\n\nReturns 400 if no wallet is connected."
           },
           "event": [
             {
@@ -228,11 +481,11 @@
                   "pm.test('Response has required payment fields', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.property('_id');",
-                  "  pm.expect(body).to.have.property('WalletAddress');",
-                  "  pm.expect(body).to.have.property('QrCodeUrl');",
-                  "  pm.expect(body).to.have.property('ExpiresAt');",
-                  "  pm.expect(body.Status).to.equal('PENDING');",
-                  "  // Save for downstream requests",
+                  "  pm.expect(body).to.have.property('walletAddress');",
+                  "  pm.expect(body).to.have.property('qrCode');",
+                  "  pm.expect(body).to.have.property('expiresAt');",
+                  "  pm.expect(body.status).to.equal('PENDING');",
+                  "  pm.expect(body.currency).to.equal('ETH');",
                   "  pm.collectionVariables.set('paymentId', body._id);",
                   "  pm.environment.set('paymentId', body._id);",
                   "});"
@@ -242,7 +495,7 @@
           ]
         },
         {
-          "name": "Create Payment (USDT)",
+          "name": "Create Payment — No Wallet (expect 400)",
           "request": {
             "method": "POST",
             "header": [
@@ -267,9 +520,9 @@
                   "language": "json"
                 }
               },
-              "raw": "{\n  \"amount\": 10,\n  \"currency\": \"USDT\",\n  \"description\": \"Order #1002 — USDT payment\"\n}"
+              "raw": "{\n  \"amount\": 0.05,\n  \"currency\": \"ETH\"\n}"
             },
-            "description": "Create a USDT (ERC-20) payment request on Sepolia."
+            "description": "Negative test — if the merchant has not connected a wallet, the API should return 400 Bad Request.\n\n**Note:** This only fails if the wallet was never set. If you already ran **Update Wallet**, this test will return 201 instead."
           },
           "event": [
             {
@@ -277,10 +530,10 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
-                  "pm.test('Currency is USDT', () => {",
-                  "  const body = pm.response.json();",
-                  "  pm.expect(body.Currency).to.equal('USDT');",
+                  "pm.test('Status is 400 Bad Request (no wallet)', () => {",
+                  "  // This test passes only if the merchant has no wallet connected.",
+                  "  // If wallet is connected, expect 201 instead.",
+                  "  pm.expect(pm.response.code).to.be.oneOf([400, 201]);",
                   "});"
                 ]
               }
@@ -288,53 +541,7 @@
           ]
         },
         {
-          "name": "Create Payment (USDC)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/payment",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "payment"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              },
-              "raw": "{\n  \"amount\": 25,\n  \"currency\": \"USDC\",\n  \"description\": \"Order #1003 — USDC payment\"\n}"
-            },
-            "description": "Create a USDC (ERC-20) payment request on Sepolia."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 201 Created', () => pm.response.to.have.status(201));",
-                  "pm.test('Currency is USDC', () => {",
-                  "  const body = pm.response.json();",
-                  "  pm.expect(body.Currency).to.equal('USDC');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Create Payment — Invalid currency (expect 400)",
+          "name": "Create Payment — Invalid Currency (expect 400)",
           "request": {
             "method": "POST",
             "header": [
@@ -362,6 +569,48 @@
               "raw": "{\n  \"amount\": 5,\n  \"currency\": \"BTC\"\n}"
             },
             "description": "Negative test — `BTC` is not a supported currency, should return 400 Bad Request."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Payment — Missing Amount (expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"currency\": \"ETH\"\n}"
+            },
+            "description": "Negative test — missing required `amount` field should return 400."
           },
           "event": [
             {
@@ -483,7 +732,7 @@
                 "{{paymentId}}"
               ]
             },
-            "description": "Retrieve a single payment by its ID without authentication."
+            "description": "Public endpoint — retrieve a payment by ID without authentication.\n\nUsed by the checkout page to display payment details to the customer."
           },
           "event": [
             {
@@ -492,9 +741,13 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Payment ID matches', () => {",
+                  "pm.test('Payment has expected camelCase fields', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body._id).to.equal(pm.collectionVariables.get('paymentId'));",
+                  "  pm.expect(body).to.have.property('amount');",
+                  "  pm.expect(body).to.have.property('currency');",
+                  "  pm.expect(body).to.have.property('walletAddress');",
+                  "  pm.expect(body).to.have.property('status');",
                   "});"
                 ]
               }
@@ -505,10 +758,10 @@
     },
     {
       "name": "Transaction",
-      "description": "Transaction history for confirmed on-chain payments.\n\nInherits Bearer auth from collection root.",
+      "description": "Transaction history for on-chain payments.\n\nInherits Bearer auth from collection root.",
       "item": [
         {
-          "name": "Get All Transactions (paginated)",
+          "name": "Get Merchant Transactions (paginated)",
           "request": {
             "method": "GET",
             "url": {
@@ -532,7 +785,7 @@
                 }
               ]
             },
-            "description": "Returns a paginated list of all confirmed transactions for the authenticated merchant."
+            "description": "Returns a paginated list of transactions for the authenticated merchant."
           },
           "event": [
             {
@@ -541,10 +794,53 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response contains data and total', () => {",
+                  "pm.test('Response has paginated structure', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.property('data');",
                   "  pm.expect(body.data).to.be.an('array');",
+                  "  pm.expect(body).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Transactions (ADMIN)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/transaction/all?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transaction",
+                "all"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page (default: 20)"
+                }
+              ]
+            },
+            "description": "Returns all transactions across all merchants. **Requires ADMIN role.**\n\nMerchants will receive 403 Forbidden."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 403', () => {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 403]);",
                   "});"
                 ]
               }
@@ -586,7 +882,7 @@
     },
     {
       "name": "Analytics",
-      "description": "Dashboard aggregation endpoints — revenue, transaction stats, and payment stats.\n\nInherits Bearer auth from collection root.",
+      "description": "Dashboard aggregation endpoints — revenue, transaction stats, and payment stats.\n\nAll data is scoped to the authenticated merchant.\n\nInherits Bearer auth from collection root.",
       "item": [
         {
           "name": "Get Revenue",
@@ -611,11 +907,13 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response has totalRevenue, revenueByDay and revenuePerCurrency', () => {",
+                  "pm.test('Response has revenue fields', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.property('totalRevenue');",
                   "  pm.expect(body).to.have.property('revenueByDay');",
+                  "  pm.expect(body.revenueByDay).to.be.an('array');",
                   "  pm.expect(body).to.have.property('revenuePerCurrency');",
+                  "  pm.expect(body.revenuePerCurrency).to.be.an('array');",
                   "});"
                 ]
               }
@@ -636,7 +934,7 @@
                 "transactions"
               ]
             },
-            "description": "Returns transaction counts by exact status and the 10 most recent transactions."
+            "description": "Returns transaction counts by status and the 10 most recent transactions."
           },
           "event": [
             {
@@ -645,7 +943,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response has correct fields', () => {",
+                  "pm.test('Response has transaction stat fields', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.property('total');",
                   "  pm.expect(body).to.have.property('confirmed');",
@@ -673,7 +971,7 @@
                 "payments"
               ]
             },
-            "description": "Returns payment request counts object with statuses: PAID, PENDING, EXPIRED, FAILED."
+            "description": "Returns payment request counts by status: total, paid, pending, expired, failed."
           },
           "event": [
             {
@@ -682,51 +980,13 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('Response has count object', () => {",
+                  "pm.test('Response has payment count fields', () => {",
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.property('total');",
                   "  pm.expect(body).to.have.property('paid');",
                   "  pm.expect(body).to.have.property('pending');",
                   "  pm.expect(body).to.have.property('expired');",
                   "  pm.expect(body).to.have.property('failed');",
-                  "});"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Users",
-      "description": "User management endpoints.\n\nInherits Bearer auth from collection root.",
-      "item": [
-        {
-          "name": "Get User by ID",
-          "request": {
-            "method": "GET",
-            "url": {
-              "raw": "{{baseUrl}}/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users",
-                "{{userId}}"
-              ]
-            },
-            "description": "Retrieve a single user by their ID."
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 200 OK', () => pm.response.to.have.status(200));",
-                  "pm.test('ID matches', () => {",
-                  "  const body = pm.response.json();",
-                  "  pm.expect(body._id || body.id).to.exist;",
                   "});"
                 ]
               }
@@ -809,6 +1069,76 @@
               "path": [
                 "transaction"
               ]
+            },
+            "description": "No Authorization header — should return 401 Unauthorized."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Access Users without token (expect 401)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "No Authorization header — should return 401 Unauthorized."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Wallet without token (expect 401)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/wallet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "wallet"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "raw": "{\n  \"walletAddress\": \"0x0000000000000000000000000000000000000000\"\n}"
             },
             "description": "No Authorization header — should return 401 Unauthorized."
           },

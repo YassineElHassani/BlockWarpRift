@@ -4,9 +4,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { paymentApi } from "@/services/api";
 import { useMultiPaymentSocket } from "@/hooks/useSocket";
+import { useMetaMask } from "@/hooks/useMetaMask";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Wallet } from "lucide-react";
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
@@ -16,6 +17,8 @@ export default function PaymentsPage() {
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const { account, isConnecting, error: walletError, connect } = useMetaMask();
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -69,44 +72,71 @@ export default function PaymentsPage() {
         {/* Create Form */}
         <div className="md:w-1/3 bg-white p-6 rounded-2xl border border-border shadow-sm h-fit">
           <h2 className="text-xl font-bold mb-4">Request Payment</h2>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-text-secondary">Amount</label>
-              <input
-                type="number"
-                step="0.000001"
-                min="0.000001"
-                required
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full mt-1 px-4 py-2.5 bg-muted border border-border rounded-xl focus:border-primary outline-none"
-                placeholder="0.00"
-              />
+
+          {/* Wallet connect gate */}
+          {!account ? (
+            <div className="space-y-4">
+              <p className="text-sm text-text-secondary">
+                Connect your MetaMask wallet to receive payments directly.
+              </p>
+              {walletError && (
+                <p className="text-sm text-red-500">{walletError}</p>
+              )}
+              <button
+                onClick={connect}
+                disabled={isConnecting}
+                className="w-full py-3 bg-foreground text-white rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50 transition flex items-center justify-center gap-2"
+              >
+                <Wallet size={18} />
+                {isConnecting ? "Connecting..." : "Connect Wallet"}
+              </button>
             </div>
-            <div>
-              <label className="text-sm font-medium text-text-secondary">Currency</label>
-              <div className="w-full mt-1 px-4 py-2.5 bg-muted border border-border rounded-xl text-foreground font-medium">
-                ETH
+          ) : (
+            <>
+              <div className="mb-4 px-3 py-2 bg-accent/10 border border-accent/20 rounded-xl">
+                <p className="text-xs text-text-secondary">Connected Wallet</p>
+                <p className="text-sm font-mono text-accent-dark truncate">{account}</p>
               </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-text-secondary">Description (Optional)</label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full mt-1 px-4 py-2.5 bg-muted border border-border rounded-xl focus:border-primary outline-none"
-                placeholder="Order #1234"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-3 bg-foreground text-white rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50 transition"
-            >
-              {isSubmitting ? "Creating..." : "Generate Request"}
-            </button>
-          </form>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-text-secondary">Amount</label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    min="0.000001"
+                    required
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full mt-1 px-4 py-2.5 bg-muted border border-border rounded-xl focus:border-primary outline-none"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-text-secondary">Currency</label>
+                  <div className="w-full mt-1 px-4 py-2.5 bg-muted border border-border rounded-xl text-foreground font-medium">
+                    ETH
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-text-secondary">Description (Optional)</label>
+                  <input
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full mt-1 px-4 py-2.5 bg-muted border border-border rounded-xl focus:border-primary outline-none"
+                    placeholder="Order #1234"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3 bg-foreground text-white rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50 transition"
+                >
+                  {isSubmitting ? "Creating..." : "Generate Request"}
+                </button>
+              </form>
+            </>
+          )}
         </div>
 
         {/* Payments List */}

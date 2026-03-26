@@ -19,7 +19,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
     private readonly blockchainService: BlockchainService,
     private readonly transactionService: TransactionService,
     private readonly paymentGateway: PaymentGateway,
-  ) {}
+  ) { }
 
   onApplicationBootstrap() {
     this.logger.log('Starting blockchain listener...');
@@ -32,8 +32,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
 
   private async poll(): Promise<void> {
     try {
-      // First: push any already-detected transactions toward confirmation
-      // (runs independently of payment expiry so we never lose a confirmed tx)
+      // push any already-detected transactions toward confirmation
       const provider = this.blockchainService.getProvider();
       const currentBlock = await provider.getBlockNumber();
       await this.processPendingTransactions(currentBlock);
@@ -49,14 +48,14 @@ export class BlockchainListener implements OnApplicationBootstrap {
         const merchantId = payment.MerchantId;
 
         await this.checkEthPayment(
-            payment.WalletAddress,
-            payment.Amount,
-            paymentId,
-            merchantId,
-            currentBlock,
-            provider,
-            (payment as unknown as { createdAt: Date }).createdAt,
-          );
+          payment.WalletAddress,
+          payment.Amount,
+          paymentId,
+          merchantId,
+          currentBlock,
+          provider,
+          (payment as unknown as { createdAt: Date }).createdAt,
+        );
       }
     } catch (err) {
       this.logger.error('Blockchain poll error', err);
@@ -77,13 +76,16 @@ export class BlockchainListener implements OnApplicationBootstrap {
           confirmations,
           TransactionStatus.CONFIRMED,
         );
+
         await this.blockchainService.updatePaymentStatus(
           paymentId,
           PaymentStatus.PAID,
         );
+
         this.logger.log(
           `Payment ${paymentId} confirmed via pending-tx sweep (${confirmations} confirmations)`,
         );
+
         this.paymentGateway.emitPaymentConfirmed(paymentId, {
           status: PaymentStatus.PAID,
           txHash,
@@ -91,6 +93,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
           amount: tx.Amount,
           currency: tx.Currency,
         });
+
         this.paymentGateway.emitPaymentUpdated(paymentId, {
           status: PaymentStatus.PAID,
           txHash,
@@ -102,6 +105,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
           confirmations,
           TransactionStatus.PENDING,
         );
+
         this.logger.log(
           `Pending tx ${txHash}: ${confirmations}/${REQUIRED_CONFIRMATIONS} confirmations`,
         );
@@ -118,9 +122,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
     provider: ethers.JsonRpcProvider,
     createdAt?: Date,
   ): Promise<void> {
-    const secondsSinceCreation = createdAt
-      ? Math.floor((Date.now() - createdAt.getTime()) / 1000)
-      : 300;
+    const secondsSinceCreation = createdAt ? Math.floor((Date.now() - createdAt.getTime()) / 1000) : 300;
     const blockLookback = Math.ceil(secondsSinceCreation / 12) + 10;
     const fromBlock = Math.max(0, currentBlock - blockLookback);
 
@@ -139,6 +141,10 @@ export class BlockchainListener implements OnApplicationBootstrap {
     for (const transfer of result?.transfers ?? []) {
       if (transfer.value < expectedAmount) continue;
 
+      // Skip transactions already claimed by another payment (shared merchant wallet)
+      const existingTx = await this.transactionService.findByTxHash(transfer.hash);
+      if (existingTx) continue;
+
       const txBlock = parseInt(transfer.blockNum, 16);
       await this.handleConfirmation(
         transfer.hash,
@@ -151,6 +157,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
         currentBlock,
         txBlock,
       );
+
       break;
     }
   }
@@ -180,6 +187,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
         currency,
         blockNumber: txBlock,
       });
+
       this.logger.log(
         `New tx detected: ${txHash} (${confirmations} confirmations)`,
       );
@@ -191,13 +199,16 @@ export class BlockchainListener implements OnApplicationBootstrap {
         confirmations,
         TransactionStatus.CONFIRMED,
       );
+
       await this.blockchainService.updatePaymentStatus(
         paymentId,
         PaymentStatus.PAID,
       );
+
       this.logger.log(
         `Payment ${paymentId} confirmed after ${confirmations} confirmations`,
       );
+
       this.paymentGateway.emitPaymentConfirmed(paymentId, {
         status: PaymentStatus.PAID,
         txHash,
@@ -205,7 +216,7 @@ export class BlockchainListener implements OnApplicationBootstrap {
         amount,
         currency,
       });
-      // Also emit generic update so UI state machine has a single event to listen to
+
       this.paymentGateway.emitPaymentUpdated(paymentId, {
         status: PaymentStatus.PAID,
         txHash,
@@ -217,9 +228,11 @@ export class BlockchainListener implements OnApplicationBootstrap {
         confirmations,
         TransactionStatus.PENDING,
       );
+
       this.logger.log(
         `Payment ${paymentId}: ${confirmations}/${REQUIRED_CONFIRMATIONS} confirmations`,
       );
+
       this.paymentGateway.emitPaymentUpdated(paymentId, {
         status: PaymentStatus.PENDING,
         txHash,

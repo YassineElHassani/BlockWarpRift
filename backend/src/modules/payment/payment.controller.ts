@@ -23,7 +23,7 @@ export class PaymentController {
     return this.paymentService.findAll(user.userId);
   }
 
-  // Public endpoint — no auth required; must be before :id route
+  // Public endpoint no auth required
   @Get('public/:id')
   findPublic(@Param('id') id: string) {
     return this.paymentService.findPublic(id);

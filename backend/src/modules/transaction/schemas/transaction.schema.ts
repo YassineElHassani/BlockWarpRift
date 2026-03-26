@@ -39,6 +39,7 @@ export enum TransactionStatus {
     },
   },
 })
+
 export class Transaction {
   @Prop({ required: true, index: true })
   PaymentRequestId!: string;

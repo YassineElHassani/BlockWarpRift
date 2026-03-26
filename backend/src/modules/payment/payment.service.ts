@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -7,8 +7,7 @@ import {
   PaymentStatus,
 } from './schemas/payment.schema';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { WalletService } from '../wallet/wallet.service';
-import { generateWallet } from '../../utils/wallet-generator.util';
+import { UsersService } from '../users/users.service';
 import { generateEIP681QR } from '../../utils/qr-generator.util';
 import { PAYMENT_EXPIRY_MINUTES } from '../../common/constants';
 
@@ -17,39 +16,38 @@ export class PaymentService {
   constructor(
     @InjectModel(PaymentRequest.name)
     private readonly paymentModel: Model<PaymentRequestDocument>,
-    private readonly walletService: WalletService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(
     dto: CreatePaymentDto,
     merchantId: string,
   ): Promise<PaymentRequestDocument> {
-    const { address, privateKey } = generateWallet();
+    const merchant = await this.usersService.findById(merchantId);
+    if (!merchant?.WalletAddress) {
+      throw new BadRequestException(
+        'Connect your wallet before creating a payment request',
+      );
+    }
+
+    const walletAddress = merchant.WalletAddress;
     const qrCodeUrl = await generateEIP681QR(
-      address,
+      walletAddress,
       dto.amount.toString(),
       dto.currency,
     );
     const expiresAt = new Date(Date.now() + PAYMENT_EXPIRY_MINUTES * 60 * 1000);
 
-    const payment = await this.paymentModel.create({
+    return this.paymentModel.create({
       MerchantId: merchantId,
       Amount: dto.amount,
       Currency: dto.currency,
-      WalletAddress: address,
+      WalletAddress: walletAddress,
       QrCodeUrl: qrCodeUrl,
       Description: dto.description,
       ExpiresAt: expiresAt,
       Status: PaymentStatus.PENDING,
     });
-
-    await this.walletService.saveWallet(
-      address,
-      privateKey,
-      payment._id.toString(),
-    );
-
-    return payment;
   }
 
   async findAll(merchantId: string): Promise<PaymentRequestDocument[]> {
